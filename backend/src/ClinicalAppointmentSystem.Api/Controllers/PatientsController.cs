@@ -1,0 +1,16 @@
+using ClinicalAppointmentSystem.Application.Common.Pagination;
+using ClinicalAppointmentSystem.Application.Patients;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ClinicalAppointmentSystem.Api.Controllers;
+
+public sealed class PatientsController(IPatientService patients) : ApiControllerBase
+{
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedResult<PatientListItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PagedResult<PatientListItemDto>>> GetList(
+        [FromQuery] PatientListQuery query,
+        CancellationToken cancellationToken) =>
+        Ok(await patients.GetListAsync(query, cancellationToken));
+}

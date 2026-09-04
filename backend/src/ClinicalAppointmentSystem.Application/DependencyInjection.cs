@@ -1,3 +1,4 @@
+using ClinicalAppointmentSystem.Application.Patients;
 using ClinicalAppointmentSystem.Application.Specialties;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +9,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<ISpecialtyService, SpecialtyService>();
+        services.AddScoped<IPatientService, PatientService>();
 
         return services;
     }
