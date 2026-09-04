@@ -7,4 +7,6 @@ public interface IPatientService
     Task<PagedResult<PatientListItemDto>> GetListAsync(
         PatientListQuery query,
         CancellationToken cancellationToken = default);
+
+    Task<PatientDetailDto> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 }

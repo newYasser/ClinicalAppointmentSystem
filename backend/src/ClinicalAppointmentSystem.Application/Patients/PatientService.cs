@@ -1,12 +1,15 @@
+using ClinicalAppointmentSystem.Application.Appointments;
 using ClinicalAppointmentSystem.Application.Common;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
+using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
+using ClinicalAppointmentSystem.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicalAppointmentSystem.Application.Patients;
 
-public sealed class PatientService(IClinicDbContext db) : IPatientService
+public sealed class PatientService(IClinicDbContext db, IClinicClock clock) : IPatientService
 {
     private const string SortLastName = "lastName";
     private const string SortFirstName = "firstName";
@@ -52,6 +55,53 @@ public sealed class PatientService(IClinicDbContext db) : IPatientService
                 p.Appointments.Count));
 
         return await projected.ToPagedResultAsync(query.Page, query.PageSize, cancellationToken);
+    }
+
+    public async Task<PatientDetailDto> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var patient = await db.Patients
+            .AsNoTracking()
+            .Where(p => p.Id == id)
+            .Select(p => new
+            {
+                p.Id,
+                p.FirstName,
+                p.LastName,
+                p.DateOfBirth,
+                p.Phone,
+                p.Email,
+                p.CreatedAt,
+                p.UpdatedAt,
+            })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException(
+                ErrorCodes.PatientNotFound,
+                $"Patient {id} was not found.");
+
+        var rows = await db.Appointments
+            .AsNoTracking()
+            .Where(a => a.PatientId == id)
+            .OrderByDescending(a => a.ScheduledAt)
+            .ToRows()
+            .ToListAsync(cancellationToken);
+
+        var nowLocal = clock.NowLocal;
+        var appointments = rows.Select(row => row.ToDto(nowLocal)).ToList();
+
+        return new PatientDetailDto(
+            patient.Id,
+            patient.FirstName,
+            patient.LastName,
+            $"{patient.FirstName} {patient.LastName}",
+            patient.DateOfBirth,
+            patient.Phone,
+            patient.Email,
+            appointments.Count,
+            patient.CreatedAt,
+            patient.UpdatedAt,
+            appointments);
     }
 
     private static IQueryable<Patient> Sort(
