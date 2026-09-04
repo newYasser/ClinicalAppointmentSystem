@@ -47,6 +47,15 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
         CancellationToken cancellationToken) =>
         Ok(await appointments.UpdateAsync(id, request, cancellationToken));
 
+    [HttpPost("{id:int}/cancel")]
+    [ProducesResponseType(typeof(AppointmentDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AppointmentDetailDto>> Cancel(
+        int id,
+        CancellationToken cancellationToken) =>
+        Ok(await appointments.CancelAsync(id, cancellationToken));
+
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

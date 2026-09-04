@@ -178,6 +178,25 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
         return await GetByIdAsync(id, cancellationToken);
     }
 
+    // The state machine itself lives in Appointment.Cancel, which refuses anything that is
+    // not Scheduled and nulls ActiveSlot so the slot is freed for rebooking.
+    public async Task<AppointmentDetailDto> CancelAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await db.Appointments
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken)
+            ?? throw new NotFoundException(
+                ErrorCodes.AppointmentNotFound,
+                $"Appointment {id} was not found.");
+
+        appointment.Cancel();
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(id, cancellationToken);
+    }
+
     // Hard delete, distinct from cancel: this leaves no record. Deleted in one round trip
     // rather than loading the entity first; the affected row count gives the 404.
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)

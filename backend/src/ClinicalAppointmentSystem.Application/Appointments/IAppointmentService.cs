@@ -20,4 +20,6 @@ public interface IAppointmentService
         CancellationToken cancellationToken = default);
 
     Task DeleteAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<AppointmentDetailDto> CancelAsync(int id, CancellationToken cancellationToken = default);
 }
