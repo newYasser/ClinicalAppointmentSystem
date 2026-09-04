@@ -1,1 +1,20 @@
-<router-outlet />
+<header class="nav app-header">
+  <div class="nav-brand app-brand">
+    <span>{{ clinicName }}</span>
+    <span class="app-brand-sub">Practice admin</span>
+  </div>
+
+  <nav class="app-nav">
+    @for (item of navItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive ariaCurrentWhenActive="page">{{ item.label }}</a>
+    }
+  </nav>
+
+  <div class="app-today">
+    <span>{{ today | date: 'EEE d MMM y' }}</span>
+  </div>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>
