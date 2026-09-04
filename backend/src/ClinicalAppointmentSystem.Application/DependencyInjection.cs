@@ -1,3 +1,4 @@
+using ClinicalAppointmentSystem.Application.Appointments;
 using ClinicalAppointmentSystem.Application.Dashboard;
 using ClinicalAppointmentSystem.Application.Doctors;
 using ClinicalAppointmentSystem.Application.Patients;
@@ -14,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<IPatientService, PatientService>();
         services.AddScoped<IDoctorService, DoctorService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
 
         return services;
     }
