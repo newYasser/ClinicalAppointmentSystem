@@ -1,0 +1,70 @@
+.filters {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.search {
+  width: 230px;
+}
+
+.date {
+  width: 150px;
+}
+
+.doctor {
+  width: 190px;
+}
+
+.status {
+  width: 150px;
+}
+
+.per-page {
+  margin-left: auto;
+}
+
+.state {
+  padding: 24px 0;
+}
+
+.patient {
+  text-decoration: none;
+}
+
+.time {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+
+.col-date {
+  width: 130px;
+}
+
+.col-time {
+  width: 70px;
+}
+
+.col-specialty {
+  width: 150px;
+}
+
+.col-status {
+  width: 120px;
+}
+
+.col-actions {
+  width: 300px;
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}

@@ -1,0 +1,124 @@
+<form class="filters" (submit)="$event.preventDefault(); applySearch(searchInput.value)">
+  <div class="field search">
+    <label for="appointment-search">Search patient or doctor</label>
+    <input
+      #searchInput
+      id="appointment-search"
+      class="input"
+      type="search"
+      placeholder="e.g. Vogel"
+      [value]="search()"
+    />
+  </div>
+
+  <div class="field date">
+    <label for="appointment-from">From date</label>
+    <input
+      id="appointment-from"
+      class="input"
+      type="date"
+      [value]="from() ?? ''"
+      (change)="applyFrom(fromInput.value)"
+      #fromInput
+    />
+  </div>
+
+  <div class="field date">
+    <label for="appointment-to">To date</label>
+    <input
+      id="appointment-to"
+      class="input"
+      type="date"
+      [value]="to() ?? ''"
+      (change)="applyTo(toInput.value)"
+      #toInput
+    />
+  </div>
+
+  <div class="field doctor">
+    <label for="appointment-doctor">Doctor</label>
+    <select id="appointment-doctor" class="input" (change)="applyDoctor(doctorSelect.value)" #doctorSelect>
+      <option value="" [selected]="doctorId() === undefined">All doctors</option>
+      @for (doctor of doctorOptions(); track doctor.id) {
+        <option [value]="doctor.id" [selected]="doctor.id === doctorId()">{{ doctor.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="field status">
+    <label for="appointment-status">Status</label>
+    <select id="appointment-status" class="input" (change)="applyStatus(statusSelect.value)" #statusSelect>
+      <option value="" [selected]="status() === undefined">All statuses</option>
+      <option value="Scheduled" [selected]="status() === 'Scheduled'">Scheduled</option>
+      <option value="Completed" [selected]="status() === 'Completed'">Completed</option>
+      <option value="Cancelled" [selected]="status() === 'Cancelled'">Cancelled</option>
+    </select>
+  </div>
+
+  <button class="btn btn-secondary" type="submit">Apply</button>
+  <button class="btn btn-ghost" type="button" (click)="clearFilters()">Clear all</button>
+
+  <app-page-size-select
+    class="per-page"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="changePageSize($event)"
+  />
+</form>
+
+@if (appointments.isLoading()) {
+  <p class="state text-muted">Loading appointments…</p>
+} @else if (appointments.error(); as error) {
+  <app-empty-state>
+    {{ error.message }}
+    <button type="button" class="btn btn-ghost" (click)="appointments.reload()">Try again</button>
+  </app-empty-state>
+} @else if (appointments.hasValue()) {
+  @if (appointments.value().items.length) {
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="col-date">Date</th>
+          <th class="col-time">Time</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th class="col-specialty">Specialty</th>
+          <th class="col-status">Status</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (appointment of appointments.value().items; track appointment.id) {
+          <tr>
+            <td>{{ appointment.date | dateLabel }}</td>
+            <td class="time">{{ appointment.startTime | timeLabel }}</td>
+            <td>
+              <a class="patient" [routerLink]="['/patients', appointment.patientId]">
+                {{ appointment.patientName }}
+              </a>
+            </td>
+            <td>{{ appointment.doctorName }}</td>
+            <td class="text-muted">{{ appointment.specialty }}</td>
+            <td><app-status-tag [status]="appointment.status" /></td>
+            <td class="col-actions">
+              <div class="actions">
+                <a class="btn btn-ghost" [routerLink]="['/appointments', appointment.id, 'edit']">
+                  Edit
+                </a>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else if (hasFilters()) {
+    <app-empty-state>No appointments match the current filters.</app-empty-state>
+  } @else {
+    <app-empty-state>No appointments booked yet.</app-empty-state>
+  }
+
+  <app-pagination
+    [result]="appointments.value()"
+    noun="appointments"
+    (pageChange)="goToPage($event)"
+  />
+}

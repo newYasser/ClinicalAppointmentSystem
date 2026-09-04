@@ -1,4 +1,7 @@
+import { AppointmentStatus } from '../../core/models/appointment-status';
 import { PAGE_SIZES, PageSize } from '../../core/models/paged-result';
+import { IsoDate } from '../../core/models/primitives';
+import { isIsoDate } from '../format/iso-date';
 
 const DEFAULT_PAGE_SIZE: PageSize = 10;
 
@@ -19,4 +22,14 @@ export function readText(raw: string | null): string {
 export function readId(raw: string | null): number | undefined {
   const id = Number(raw);
   return Number.isInteger(id) && id > 0 ? id : undefined;
+}
+
+const STATUSES: readonly AppointmentStatus[] = ['Scheduled', 'Completed', 'Cancelled'];
+
+export function readStatus(raw: string | null): AppointmentStatus | undefined {
+  return STATUSES.includes(raw as AppointmentStatus) ? (raw as AppointmentStatus) : undefined;
+}
+
+export function readDate(raw: string | null): IsoDate | undefined {
+  return isIsoDate(raw) ? raw : undefined;
 }
