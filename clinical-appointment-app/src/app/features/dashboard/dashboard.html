@@ -1,0 +1,65 @@
+<app-page-header kicker="Overview" heading="Clinic at a glance">
+  <a
+    class="btn btn-primary action"
+    appBlueprint
+    routerLink="/appointments/new"
+    [queryParams]="newAppointmentParams()"
+  >
+    New appointment
+  </a>
+</app-page-header>
+
+@if (summary.isLoading()) {
+  <p class="state text-muted">Loading the clinic summary…</p>
+} @else if (summary.error(); as error) {
+  <app-empty-state>
+    {{ error.message }}
+    <button type="button" class="btn btn-ghost" (click)="summary.reload()">Try again</button>
+  </app-empty-state>
+} @else if (summary.hasValue()) {
+  <div class="stats">
+    @for (tile of tiles(); track tile.label) {
+      <a class="card stat" appBlueprint [routerLink]="tile.link" [queryParams]="tile.queryParams">
+        <span class="card-kicker">{{ tile.label }}</span>
+        <span class="stat-value">{{ tile.value }}</span>
+        <span class="stat-sub">{{ tile.sub }}</span>
+      </a>
+    }
+  </div>
+
+  <div class="section-head">
+    <h3>Today’s schedule</h3>
+    <a class="section-link" routerLink="/appointments">All appointments →</a>
+  </div>
+
+  @if (summary.value().todaySchedule.length) {
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="col-time">Time</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Specialty</th>
+          <th class="col-status">Status</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of summary.value().todaySchedule; track row.id) {
+          <tr>
+            <td class="time">{{ row.startTime | timeLabel }}</td>
+            <td>{{ row.patientName }}</td>
+            <td>{{ row.doctorName }}</td>
+            <td class="text-muted">{{ row.specialty }}</td>
+            <td><app-status-tag [status]="row.status" /></td>
+            <td class="col-actions">
+              <a class="btn btn-ghost" [routerLink]="['/appointments', row.id, 'edit']">Manage</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <app-empty-state>No appointments booked for today.</app-empty-state>
+  }
+}
