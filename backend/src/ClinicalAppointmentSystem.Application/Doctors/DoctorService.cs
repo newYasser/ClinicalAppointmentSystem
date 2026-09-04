@@ -1,6 +1,7 @@
 using ClinicalAppointmentSystem.Application.Common;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
+using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
 using ClinicalAppointmentSystem.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +68,27 @@ public sealed class DoctorService(IClinicDbContext db) : IDoctorService
 
         return await projected.ToPagedResultAsync(query.Page, query.PageSize, cancellationToken);
     }
+
+    public async Task<DoctorDetailDto> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default) =>
+        await db.Doctors
+            .AsNoTracking()
+            .Where(d => d.Id == id)
+            .Select(d => new DoctorDetailDto(
+                d.Id,
+                d.FirstName,
+                d.LastName,
+                "Dr. " + d.FirstName + " " + d.LastName,
+                d.SpecialtyId,
+                d.Specialty.Name,
+                d.Appointments.Count,
+                d.CreatedAt,
+                d.UpdatedAt))
+            .FirstOrDefaultAsync(cancellationToken)
+        ?? throw new NotFoundException(
+            ErrorCodes.DoctorNotFound,
+            $"Doctor {id} was not found.");
 
     private static IQueryable<Doctor> Sort(
         IQueryable<Doctor> query,

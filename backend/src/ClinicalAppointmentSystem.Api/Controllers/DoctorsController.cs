@@ -13,4 +13,12 @@ public sealed class DoctorsController(IDoctorService doctors) : ApiControllerBas
         [FromQuery] DoctorListQuery query,
         CancellationToken cancellationToken) =>
         Ok(await doctors.GetListAsync(query, cancellationToken));
+
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(DoctorDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DoctorDetailDto>> GetById(
+        int id,
+        CancellationToken cancellationToken) =>
+        Ok(await doctors.GetByIdAsync(id, cancellationToken));
 }
