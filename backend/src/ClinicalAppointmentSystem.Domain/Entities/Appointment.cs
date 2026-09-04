@@ -1,5 +1,6 @@
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Enums;
+using ClinicalAppointmentSystem.Domain.Exceptions;
 using ClinicalAppointmentSystem.Domain.Scheduling;
 
 namespace ClinicalAppointmentSystem.Domain.Entities;
@@ -84,7 +85,8 @@ public class Appointment : AuditableEntity
     {
         if (Status != AppointmentStatus.Scheduled)
         {
-            throw new InvalidOperationException(
+            throw new ConflictException(
+                ErrorCodes.InvalidStatusTransition,
                 Status == AppointmentStatus.Cancelled
                     ? "This appointment is already cancelled."
                     : "A completed appointment cannot be cancelled.");
@@ -98,7 +100,8 @@ public class Appointment : AuditableEntity
     {
         if (Status != AppointmentStatus.Scheduled)
         {
-            throw new InvalidOperationException(
+            throw new ConflictException(
+                ErrorCodes.InvalidStatusTransition,
                 Status == AppointmentStatus.Cancelled
                     ? "A cancelled appointment cannot be marked as completed."
                     : "This appointment is already completed.");

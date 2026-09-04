@@ -1,3 +1,6 @@
+using ClinicalAppointmentSystem.Domain.Common;
+using ClinicalAppointmentSystem.Domain.Exceptions;
+
 namespace ClinicalAppointmentSystem.Domain.Scheduling;
 
 public static class ClinicSchedule
@@ -21,7 +24,8 @@ public static class ClinicSchedule
     {
         if (!IsValidSlotStart(startTime))
         {
-            throw new InvalidOperationException(
+            throw new DomainValidationException(
+                ErrorCodes.SlotOutOfBounds,
                 $"Appointments start on the half hour between {OpeningTime:HH\\:mm} and {LastSlotStart:HH\\:mm}.");
         }
     }
