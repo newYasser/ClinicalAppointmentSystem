@@ -1,10 +1,12 @@
+using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicalAppointmentSystem.Infrastructure.Persistence;
 
-public class ClinicDbContext(DbContextOptions<ClinicDbContext> options) : DbContext(options)
+public class ClinicDbContext(DbContextOptions<ClinicDbContext> options)
+    : DbContext(options), IClinicDbContext
 {
     public DbSet<Specialty> Specialties => Set<Specialty>();
 

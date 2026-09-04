@@ -9,7 +9,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("ClinicDb")
     ?? throw new InvalidOperationException(
-        "Connection string 'ClinicDb' is not configured. Set it in user-secrets or appsettings."));
+        "Connection string 'ClinicDb' is not configured. Set it in user-secrets or appsettings."),
+    builder.Configuration["Clinic:TimeZone"]
+    ?? throw new InvalidOperationException("'Clinic:TimeZone' is not configured."));
 
 var app = builder.Build();
 

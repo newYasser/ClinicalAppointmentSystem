@@ -1,4 +1,6 @@
+using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Infrastructure.Persistence;
+using ClinicalAppointmentSystem.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,10 +13,15 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        string connectionString)
+        string connectionString,
+        string timeZoneId)
     {
         services.AddDbContext<ClinicDbContext>(options =>
             options.UseMySql(connectionString, MySqlVersion));
+
+        services.AddScoped<IClinicDbContext>(sp => sp.GetRequiredService<ClinicDbContext>());
+
+        services.AddSingleton<IClinicClock>(new ClinicClock(TimeProvider.System, timeZoneId));
 
         return services;
     }
