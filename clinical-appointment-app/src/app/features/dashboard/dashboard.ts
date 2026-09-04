@@ -3,7 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Params, RouterLink } from '@angular/router';
 
 import { DashboardApi } from '../../core/api/dashboard-api';
-import { IsoDate } from '../../core/models/primitives';
+import { shiftIsoDate } from '../../shared/format/iso-date';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { Blueprint } from '../../shared/ui/blueprint';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -16,16 +16,6 @@ interface StatTile {
   readonly sub: string;
   readonly link: string;
   readonly queryParams: Params;
-}
-
-function addDays(date: IsoDate, days: number): IsoDate {
-  const shifted = new Date(`${date}T12:00:00`);
-  shifted.setDate(shifted.getDate() + days);
-
-  const month = String(shifted.getMonth() + 1).padStart(2, '0');
-  const day = String(shifted.getDate()).padStart(2, '0');
-
-  return `${shifted.getFullYear()}-${month}-${day}`;
 }
 
 @Component({
@@ -82,7 +72,7 @@ export class Dashboard {
         value: summary.upcomingAppointmentCount,
         sub: 'Scheduled after today',
         link: '/appointments',
-        queryParams: { view: 'list', from: addDays(summary.today, 1), status: 'Scheduled' },
+        queryParams: { view: 'list', from: shiftIsoDate(summary.today, 1), status: 'Scheduled' },
       },
     ];
   });

@@ -1,0 +1,206 @@
+.controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.day {
+  width: 170px;
+}
+
+.specialty {
+  width: 210px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.swatch {
+  display: block;
+  width: 12px;
+  height: 12px;
+
+  &.is-booked {
+    background: var(--color-accent);
+  }
+
+  &.is-free {
+    border: 1px solid var(--color-divider);
+  }
+
+  &.is-past {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--color-neutral-300) 0 2px,
+      transparent 2px 4px
+    );
+  }
+}
+
+.heading {
+  margin: 16px 0 10px;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 26px;
+}
+
+.state {
+  padding: 24px 0;
+}
+
+.scroller {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.grid {
+  min-width: 100%;
+  display: inline-block;
+}
+
+.row {
+  display: flex;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+
+  &.head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-divider);
+  }
+}
+
+.gutter {
+  width: 66px;
+  flex: none;
+}
+
+.time {
+  padding: 6px 10px;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 14px;
+  color: var(--color-neutral-700);
+}
+
+.column {
+  width: 158px;
+  flex: none;
+  padding: 8px 10px;
+  border-left: 1px solid var(--color-divider);
+}
+
+.cell {
+  padding: 3px;
+}
+
+.doctor {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doctor-specialty {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.slot {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 5px 8px;
+  text-decoration: none;
+}
+
+.slot-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slot-sub {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.is-booked {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-bg);
+
+  &:hover {
+    background: var(--color-accent-700);
+    color: var(--color-bg);
+  }
+}
+
+.is-done {
+  border: 1px solid var(--color-divider);
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+
+  &:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent-800);
+  }
+
+  .slot-sub {
+    opacity: 0.75;
+  }
+}
+
+.is-free {
+  border: 1px dashed transparent;
+  background: transparent;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13px;
+  line-height: 32px;
+  text-align: center;
+  color: var(--color-accent);
+  opacity: 0;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    border-color: var(--color-accent);
+  }
+}
+
+.is-past {
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--color-text) 7%, transparent) 0 3px,
+    transparent 3px 6px
+  );
+}

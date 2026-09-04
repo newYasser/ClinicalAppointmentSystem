@@ -1,0 +1,117 @@
+<div class="controls">
+  <button type="button" class="btn btn-secondary" aria-label="Previous day" (click)="stepDay(-1)">
+    ←
+  </button>
+
+  <div class="field day">
+    <label for="board-day">Day</label>
+    <input
+      id="board-day"
+      class="input"
+      type="date"
+      [value]="date()"
+      (change)="goToDay(dayInput.value)"
+      #dayInput
+    />
+  </div>
+
+  <button type="button" class="btn btn-secondary" aria-label="Next day" (click)="stepDay(1)">→</button>
+  <button type="button" class="btn btn-ghost" (click)="goToToday()">Today</button>
+
+  <div class="field specialty">
+    <label for="board-specialty">Specialty column filter</label>
+    <select
+      id="board-specialty"
+      class="input"
+      (change)="applySpecialty(specialtySelect.value)"
+      #specialtySelect
+    >
+      <option value="" [selected]="specialtyId() === undefined">All specialties</option>
+      @for (specialty of specialtyOptions(); track specialty.id) {
+        <option [value]="specialty.id" [selected]="specialty.id === specialtyId()">
+          {{ specialty.name }}
+        </option>
+      }
+    </select>
+  </div>
+
+  @if (doctorId() !== undefined) {
+    <button type="button" class="btn btn-ghost" (click)="showAllDoctors()">Show all doctors</button>
+  }
+
+  <div class="legend">
+    <span><span class="swatch is-booked"></span>Booked</span>
+    <span><span class="swatch is-free"></span>Free — click to book</span>
+    <span><span class="swatch is-past"></span>Past</span>
+  </div>
+</div>
+
+<div class="heading">{{ heading() }}</div>
+
+@if (board.isLoading()) {
+  <p class="state text-muted">Loading the day…</p>
+} @else if (board.error(); as error) {
+  <app-empty-state>
+    {{ error.message }}
+    <button type="button" class="btn btn-ghost" (click)="board.reload()">Try again</button>
+  </app-empty-state>
+} @else if (board.hasValue()) {
+  @if (board.value().doctors.length) {
+    <div class="scroller">
+      <div class="grid">
+        <div class="row head">
+          <div class="gutter"></div>
+          @for (doctor of board.value().doctors; track doctor.id) {
+            <div class="column">
+              <div class="doctor">{{ doctor.name }}</div>
+              <div class="doctor-specialty">{{ doctor.specialty }}</div>
+            </div>
+          }
+        </div>
+
+        @for (row of board.value().rows; track row.startTime) {
+          <div class="row">
+            <div class="gutter time">{{ row.startTime | timeLabel }}</div>
+
+            @for (cell of row.cells; track cell.doctorId) {
+              <div class="column cell">
+                @switch (cell.state) {
+                  @case ('Booked') {
+                    <a class="slot is-booked" [routerLink]="['/appointments', cell.appointmentId, 'edit']">
+                      <span class="slot-label">{{ cell.label }}</span>
+                      <span class="slot-sub">{{ cell.status }}</span>
+                    </a>
+                  }
+                  @case ('Completed') {
+                    <a class="slot is-done" [routerLink]="['/appointments', cell.appointmentId, 'edit']">
+                      <span class="slot-label">{{ cell.label }}</span>
+                      <span class="slot-sub">{{ cell.status }}</span>
+                    </a>
+                  }
+                  @case ('Free') {
+                    <a
+                      class="slot is-free"
+                      routerLink="/appointments/new"
+                      [queryParams]="{
+                        doctorId: cell.doctorId,
+                        date: date(),
+                        startTime: row.startTime,
+                      }"
+                    >
+                      + Book
+                    </a>
+                  }
+                  @default {
+                    <div class="slot is-past" aria-hidden="true"></div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <app-empty-state>No doctors match this filter.</app-empty-state>
+  }
+}
