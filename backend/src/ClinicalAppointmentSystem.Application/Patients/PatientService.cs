@@ -15,6 +15,7 @@ public sealed class PatientService(IClinicDbContext db, IClinicClock clock) : IP
     private const string SortFirstName = "firstName";
     private const string SortDateOfBirth = "dateOfBirth";
     private const string SortAppointmentCount = "appointmentCount";
+    private const string SortScheduledAt = "scheduledAt";
 
     public async Task<PagedResult<PatientListItemDto>> GetListAsync(
         PatientListQuery query,
@@ -102,6 +103,47 @@ public sealed class PatientService(IClinicDbContext db, IClinicClock clock) : IP
             patient.CreatedAt,
             patient.UpdatedAt,
             appointments);
+    }
+
+    public async Task<PagedResult<AppointmentListItemDto>> GetAppointmentsAsync(
+        int id,
+        PatientAppointmentsQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        query.EnsureValid();
+        _ = query.ResolveSortBy(SortScheduledAt, SortScheduledAt);
+
+        var patientExists = await db.Patients
+            .AsNoTracking()
+            .AnyAsync(p => p.Id == id, cancellationToken);
+
+        if (!patientExists)
+        {
+            throw new NotFoundException(
+                ErrorCodes.PatientNotFound,
+                $"Patient {id} was not found.");
+        }
+
+        var appointments = db.Appointments
+            .AsNoTracking()
+            .Where(a => a.PatientId == id);
+
+        if (query.Status is { } status)
+        {
+            appointments = appointments.Where(a => a.Status == status);
+        }
+
+        // Newest first unless the caller explicitly asks for ascending.
+        var ordered = query.SortDir is null || query.IsDescending
+            ? appointments.OrderByDescending(a => a.ScheduledAt)
+            : appointments.OrderBy(a => a.ScheduledAt);
+
+        var page = await ordered
+            .ToRows()
+            .ToPagedResultAsync(query.Page, query.PageSize, cancellationToken);
+
+        var nowLocal = clock.NowLocal;
+        return page.Map(row => row.ToDto(nowLocal));
     }
 
     private static IQueryable<Patient> Sort(

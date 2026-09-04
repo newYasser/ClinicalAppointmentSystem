@@ -18,4 +18,13 @@ public sealed record PagedResult<T>
 
     public static PagedResult<T> Empty(int pageSize) =>
         new() { Items = [], Page = 1, PageSize = pageSize, TotalCount = 0 };
+
+    public PagedResult<TOut> Map<TOut>(Func<T, TOut> selector) =>
+        new()
+        {
+            Items = [.. Items.Select(selector)],
+            Page = Page,
+            PageSize = PageSize,
+            TotalCount = TotalCount,
+        };
 }
