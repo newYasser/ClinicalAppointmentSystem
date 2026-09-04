@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
+import { ToastHost } from './shared/ui/toast-host';
+
 interface NavItem {
   readonly path: string;
   readonly label: string;
@@ -9,7 +11,7 @@ interface NavItem {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, DatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, DatePipe, ToastHost],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
