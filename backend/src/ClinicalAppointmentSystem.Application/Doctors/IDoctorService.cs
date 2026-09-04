@@ -9,4 +9,8 @@ public interface IDoctorService
         CancellationToken cancellationToken = default);
 
     Task<DoctorDetailDto> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<DoctorLookupDto>> GetLookupAsync(
+        DoctorLookupQuery query,
+        CancellationToken cancellationToken = default);
 }

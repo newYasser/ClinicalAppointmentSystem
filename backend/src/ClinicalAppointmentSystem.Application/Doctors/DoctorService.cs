@@ -90,6 +90,38 @@ public sealed class DoctorService(IClinicDbContext db) : IDoctorService
             ErrorCodes.DoctorNotFound,
             $"Doctor {id} was not found.");
 
+    public async Task<IReadOnlyList<DoctorLookupDto>> GetLookupAsync(
+        DoctorLookupQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var doctors = db.Doctors.AsNoTracking();
+
+        var pattern = SearchTerm.ToLikePattern(query.Search);
+        if (pattern is not null)
+        {
+            doctors = doctors.Where(d =>
+                EF.Functions.Like(d.FirstName, pattern)
+                || EF.Functions.Like(d.LastName, pattern)
+                || EF.Functions.Like(d.FirstName + " " + d.LastName, pattern));
+        }
+
+        if (query.SpecialtyId is { } specialtyId)
+        {
+            doctors = doctors.Where(d => d.SpecialtyId == specialtyId);
+        }
+
+        return await doctors
+            .OrderBy(d => d.LastName)
+            .ThenBy(d => d.FirstName)
+            .ThenBy(d => d.Id)
+            .Select(d => new DoctorLookupDto(
+                d.Id,
+                "Dr. " + d.FirstName + " " + d.LastName + " · " + d.Specialty.Name,
+                d.SpecialtyId,
+                d.Specialty.Name))
+            .ToListAsync(cancellationToken);
+    }
+
     private static IQueryable<Doctor> Sort(
         IQueryable<Doctor> query,
         string sortBy,
