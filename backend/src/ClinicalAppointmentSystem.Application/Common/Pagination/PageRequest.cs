@@ -19,17 +19,17 @@ public class PageRequest
     public bool IsDescending =>
         string.Equals(SortDir, "desc", StringComparison.OrdinalIgnoreCase);
 
-    public void EnsureValid()
+    public virtual void EnsureValid()
     {
         if (Page < 1)
         {
-            throw DomainValidationException.ForField("page", "page must be 1 or greater.");
+            throw DomainValidationException.ForField("Page", "page must be 1 or greater.");
         }
 
         if (!AllowedPageSizes.Contains(PageSize))
         {
             throw DomainValidationException.ForField(
-                "pageSize",
+                "PageSize",
                 $"pageSize must be one of {string.Join(", ", AllowedPageSizes)}.");
         }
 
@@ -37,7 +37,7 @@ public class PageRequest
             && !string.Equals(SortDir, "asc", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(SortDir, "desc", StringComparison.OrdinalIgnoreCase))
         {
-            throw DomainValidationException.ForField("sortDir", "sortDir must be asc or desc.");
+            throw DomainValidationException.ForField("SortDir", "sortDir must be asc or desc.");
         }
     }
 
@@ -54,7 +54,7 @@ public class PageRequest
             column => string.Equals(column, requested, StringComparison.OrdinalIgnoreCase));
 
         return match ?? throw DomainValidationException.ForField(
-            "sortBy",
+            "SortBy",
             $"sortBy must be one of {string.Join(", ", allowed)}.");
     }
 }

@@ -1,9 +1,11 @@
+using System.Globalization;
 using ClinicalAppointmentSystem.Application.Common;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
 using ClinicalAppointmentSystem.Domain.Exceptions;
+using ClinicalAppointmentSystem.Domain.Scheduling;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicalAppointmentSystem.Application.Appointments;
@@ -27,18 +29,6 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
             SortPatientName,
             SortDoctorName,
             SortStatus);
-
-        if (query.Date is not null && (query.From is not null || query.To is not null))
-        {
-            throw DomainValidationException.ForField(
-                "date",
-                "Filter by either date or from/to, not both.");
-        }
-
-        if (query.From is { } fromCheck && query.To is { } toCheck && toCheck < fromCheck)
-        {
-            throw DomainValidationException.ForField("to", "to must be on or after from.");
-        }
 
         var appointments = db.Appointments.AsNoTracking();
 
@@ -112,6 +102,117 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
                 $"Appointment {id} was not found.");
 
         return row.ToDetailDto(clock.NowLocal);
+    }
+
+    public async Task<AppointmentDetailDto> CreateAsync(
+        CreateAppointmentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        // Presence is already enforced by DataAnnotations before the service is reached.
+        var patientId = request.PatientId!.Value;
+        var doctorId = request.DoctorId!.Value;
+        var date = request.Date!.Value;
+        var startTime = request.StartTime!.Value;
+
+        // Checks run in the order the contract specifies and stop at the first failure:
+        // slot bounds (400), unknown ids (404), past (409), then conflicts (409).
+        ClinicSchedule.EnsureValidSlotStart(startTime);
+
+        await EnsurePatientExistsAsync(patientId, cancellationToken);
+        await EnsureDoctorExistsAsync(doctorId, cancellationToken);
+
+        var scheduledAt = date.ToDateTime(startTime);
+
+        EnsureNotInPast(scheduledAt);
+        await EnsureSlotIsFreeAsync(scheduledAt, doctorId, patientId, null, cancellationToken);
+
+        var appointment = Appointment.Schedule(patientId, doctorId, date, startTime, request.Notes);
+
+        db.Appointments.Add(appointment);
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(appointment.Id, cancellationToken);
+    }
+
+    private async Task EnsurePatientExistsAsync(int patientId, CancellationToken cancellationToken)
+    {
+        if (!await db.Patients.AnyAsync(p => p.Id == patientId, cancellationToken))
+        {
+            throw new NotFoundException(
+                ErrorCodes.PatientNotFound,
+                $"Patient {patientId} was not found.");
+        }
+    }
+
+    private async Task EnsureDoctorExistsAsync(int doctorId, CancellationToken cancellationToken)
+    {
+        if (!await db.Doctors.AnyAsync(d => d.Id == doctorId, cancellationToken))
+        {
+            throw new NotFoundException(
+                ErrorCodes.DoctorNotFound,
+                $"Doctor {doctorId} was not found.");
+        }
+    }
+
+    private void EnsureNotInPast(DateTime scheduledAt)
+    {
+        if (ClinicSchedule.IsInPast(scheduledAt, clock.NowLocal))
+        {
+            throw new ConflictException(
+                ErrorCodes.AppointmentInPast,
+                "That slot is in the past. Appointments can only be scheduled from the current time onwards.");
+        }
+    }
+
+    private async Task EnsureSlotIsFreeAsync(
+        DateTime scheduledAt,
+        int doctorId,
+        int patientId,
+        int? excludeAppointmentId,
+        CancellationToken cancellationToken)
+    {
+        var clash = await db.Appointments
+            .AsNoTracking()
+            .Where(AppointmentSpecifications.ClashingWith(
+                scheduledAt,
+                doctorId,
+                patientId,
+                excludeAppointmentId))
+
+            .OrderByDescending(a => a.DoctorId == doctorId)
+            .Select(a => new { a.Id, a.DoctorId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (clash is null)
+        {
+            return;
+        }
+
+        var when = $"{TimeOnly.FromDateTime(scheduledAt):HH\\:mm} on "
+            + DateOnly.FromDateTime(scheduledAt).ToString("ddd d MMM yyyy", CultureInfo.InvariantCulture);
+
+        if (clash.DoctorId == doctorId)
+        {
+            var doctorName = await db.Doctors
+                .Where(d => d.Id == doctorId)
+                .Select(d => "Dr. " + d.FirstName + " " + d.LastName)
+                .FirstAsync(cancellationToken);
+
+            throw new ConflictException(
+                ErrorCodes.DoctorSlotConflict,
+                $"{doctorName} already has an appointment at {when}. Each appointment is 30 minutes and may not overlap — pick a free slot.")
+                .With("conflictingAppointmentId", clash.Id);
+        }
+
+        var patientName = await db.Patients
+            .Where(p => p.Id == patientId)
+            .Select(p => p.FirstName + " " + p.LastName)
+            .FirstAsync(cancellationToken);
+
+        throw new ConflictException(
+            ErrorCodes.PatientSlotConflict,
+            $"{patientName} already has an appointment at {when}. Each appointment is 30 minutes and may not overlap — pick a free slot.")
+            .With("conflictingAppointmentId", clash.Id);
     }
 
     private static IQueryable<Appointment> Sort(

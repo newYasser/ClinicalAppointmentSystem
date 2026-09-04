@@ -154,7 +154,7 @@ public sealed class PatientService(IClinicDbContext db, IClinicClock clock) : IP
         if (query.Limit < 1 || query.Limit > PatientLookupQuery.MaxLimit)
         {
             throw DomainValidationException.ForField(
-                "limit",
+                "Limit",
                 $"limit must be between 1 and {PatientLookupQuery.MaxLimit}.");
         }
 

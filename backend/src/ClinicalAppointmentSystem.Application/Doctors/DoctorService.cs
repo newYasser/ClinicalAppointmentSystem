@@ -31,7 +31,7 @@ public sealed class DoctorService(IClinicDbContext db) : IDoctorService
         if (query.SpecialtyId is not null && !string.IsNullOrWhiteSpace(query.Specialty))
         {
             throw DomainValidationException.ForField(
-                "specialty",
+                "Specialty",
                 "Filter by either specialtyId or specialty, not both.");
         }
 

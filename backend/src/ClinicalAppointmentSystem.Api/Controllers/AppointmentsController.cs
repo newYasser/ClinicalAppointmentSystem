@@ -21,4 +21,18 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
         int id,
         CancellationToken cancellationToken) =>
         Ok(await appointments.GetByIdAsync(id, cancellationToken));
+
+    [HttpPost]
+    [ProducesResponseType(typeof(AppointmentDetailDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AppointmentDetailDto>> Create(
+        [FromBody] CreateAppointmentRequest request,
+        CancellationToken cancellationToken)
+    {
+        var created = await appointments.CreateAsync(request, cancellationToken);
+
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
 }
