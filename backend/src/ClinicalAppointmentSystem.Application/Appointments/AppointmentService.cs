@@ -1,6 +1,7 @@
 using ClinicalAppointmentSystem.Application.Common;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
+using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
 using ClinicalAppointmentSystem.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -95,6 +96,22 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
 
         var nowLocal = clock.NowLocal;
         return page.Map(row => row.ToDto(nowLocal));
+    }
+
+    public async Task<AppointmentDetailDto> GetByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var row = await db.Appointments
+            .AsNoTracking()
+            .Where(a => a.Id == id)
+            .ToRows()
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException(
+                ErrorCodes.AppointmentNotFound,
+                $"Appointment {id} was not found.");
+
+        return row.ToDetailDto(clock.NowLocal);
     }
 
     private static IQueryable<Appointment> Sort(

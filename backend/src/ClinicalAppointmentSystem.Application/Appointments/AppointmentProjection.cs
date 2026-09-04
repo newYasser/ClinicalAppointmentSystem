@@ -15,11 +15,12 @@ public sealed record AppointmentRow(
     int DoctorId,
     string DoctorFirstName,
     string DoctorLastName,
-    string Specialty);
+    string Specialty,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
 
 public static class AppointmentProjection
 {
-
     public static IQueryable<AppointmentRow> ToRows(this IQueryable<Appointment> query) =>
         query.Select(a => new AppointmentRow(
             a.Id,
@@ -33,7 +34,9 @@ public static class AppointmentProjection
             a.DoctorId,
             a.Doctor.FirstName,
             a.Doctor.LastName,
-            a.Doctor.Specialty.Name));
+            a.Doctor.Specialty.Name,
+            a.CreatedAt,
+            a.UpdatedAt));
 
     public static AppointmentListItemDto ToDto(this AppointmentRow row, DateTime nowLocal)
     {
@@ -56,5 +59,29 @@ public static class AppointmentProjection
             isScheduled,
             isScheduled,
             row.ScheduledAt < nowLocal);
+    }
+
+    public static AppointmentDetailDto ToDetailDto(this AppointmentRow row, DateTime nowLocal)
+    {
+        var item = row.ToDto(nowLocal);
+
+        return new AppointmentDetailDto(
+            item.Id,
+            item.Date,
+            item.StartTime,
+            item.EndTime,
+            item.DurationMinutes,
+            item.Status,
+            item.Notes,
+            item.PatientId,
+            item.PatientName,
+            item.DoctorId,
+            item.DoctorName,
+            item.Specialty,
+            item.CanComplete,
+            item.CanCancel,
+            item.IsPast,
+            row.CreatedAt,
+            row.UpdatedAt);
     }
 }

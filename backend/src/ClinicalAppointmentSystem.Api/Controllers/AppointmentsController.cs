@@ -13,4 +13,12 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
         [FromQuery] AppointmentListQuery query,
         CancellationToken cancellationToken) =>
         Ok(await appointments.GetListAsync(query, cancellationToken));
+
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(AppointmentDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AppointmentDetailDto>> GetById(
+        int id,
+        CancellationToken cancellationToken) =>
+        Ok(await appointments.GetByIdAsync(id, cancellationToken));
 }

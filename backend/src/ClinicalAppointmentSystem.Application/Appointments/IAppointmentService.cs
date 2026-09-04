@@ -7,4 +7,6 @@ public interface IAppointmentService
     Task<PagedResult<AppointmentListItemDto>> GetListAsync(
         AppointmentListQuery query,
         CancellationToken cancellationToken = default);
+
+    Task<AppointmentDetailDto> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 }
