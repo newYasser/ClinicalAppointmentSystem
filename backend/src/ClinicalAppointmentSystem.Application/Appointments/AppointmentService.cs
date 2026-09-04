@@ -2,6 +2,7 @@ using System.Globalization;
 using ClinicalAppointmentSystem.Application.Common;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
+using ClinicalAppointmentSystem.Application.Doctors;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
 using ClinicalAppointmentSystem.Domain.Enums;
@@ -270,6 +271,82 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
             .ToList();
 
         return new DayBoardDto(date, doctors, rows);
+    }
+
+    public async Task<DoctorAvailabilityDto> GetDoctorAvailabilityAsync(
+        int doctorId,
+        DoctorAvailabilityQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var date = query.Date!.Value;
+        var dayStart = date.ToDateTime(TimeOnly.MinValue);
+
+        var doctorName = await db.Doctors
+            .AsNoTracking()
+            .Where(d => d.Id == doctorId)
+            .Select(d => "Dr. " + d.FirstName + " " + d.LastName)
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException(
+                ErrorCodes.DoctorNotFound,
+                $"Doctor {doctorId} was not found.");
+
+        if (query.PatientId is { } requestedPatientId)
+        {
+            await EnsurePatientExistsAsync(requestedPatientId, cancellationToken);
+        }
+
+        var occupied = await db.Appointments
+            .AsNoTracking()
+            .Where(AppointmentSpecifications.LiveBetween(dayStart, dayStart.AddDays(1)))
+            .Where(a => a.DoctorId == doctorId
+                || (query.PatientId != null && a.PatientId == query.PatientId))
+
+            // When editing, the appointment must not count against its own slot.
+            .Where(a => query.ExcludeAppointmentId == null || a.Id != query.ExcludeAppointmentId)
+            .Select(a => new { a.Id, a.DoctorId, a.PatientId, a.ActiveSlot })
+            .ToListAsync(cancellationToken);
+
+        var takenByDoctor = occupied
+            .Where(a => a.DoctorId == doctorId)
+            .ToDictionary(a => TimeOnly.FromDateTime(a.ActiveSlot!.Value));
+
+        var takenByPatient = occupied
+            .Where(a => query.PatientId != null && a.PatientId == query.PatientId)
+            .ToDictionary(a => TimeOnly.FromDateTime(a.ActiveSlot!.Value));
+
+        var nowLocal = clock.NowLocal;
+
+        var slots = ClinicSchedule.Slots
+            .Select(slot =>
+            {
+                // Occupancy wins over Past: a booked slot in the past still shows as booked,
+                // matching the day board.
+                if (takenByDoctor.TryGetValue(slot, out var doctorAppointment))
+                {
+                    return new AvailabilitySlotDto(
+                        slot,
+                        AvailabilitySlotState.TakenByDoctor,
+                        doctorAppointment.Id);
+                }
+
+                if (takenByPatient.TryGetValue(slot, out var patientAppointment))
+                {
+                    return new AvailabilitySlotDto(
+                        slot,
+                        AvailabilitySlotState.TakenByPatient,
+                        patientAppointment.Id);
+                }
+
+                return new AvailabilitySlotDto(
+                    slot,
+                    ClinicSchedule.IsInPast(date.ToDateTime(slot), nowLocal)
+                        ? AvailabilitySlotState.Past
+                        : AvailabilitySlotState.Free,
+                    null);
+            })
+            .ToList();
+
+        return new DoctorAvailabilityDto(doctorId, doctorName, date, slots);
     }
 
     // The state machine itself lives in Appointment.Cancel, which refuses anything that is

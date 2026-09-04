@@ -1,10 +1,13 @@
+using ClinicalAppointmentSystem.Application.Appointments;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
 using ClinicalAppointmentSystem.Application.Doctors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicalAppointmentSystem.Api.Controllers;
 
-public sealed class DoctorsController(IDoctorService doctors) : ApiControllerBase
+public sealed class DoctorsController(
+    IDoctorService doctors,
+    IAppointmentService appointments) : ApiControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<DoctorListItemDto>), StatusCodes.Status200OK)]
@@ -28,4 +31,14 @@ public sealed class DoctorsController(IDoctorService doctors) : ApiControllerBas
         int id,
         CancellationToken cancellationToken) =>
         Ok(await doctors.GetByIdAsync(id, cancellationToken));
+
+    [HttpGet("{id:int}/availability")]
+    [ProducesResponseType(typeof(DoctorAvailabilityDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DoctorAvailabilityDto>> GetAvailability(
+        int id,
+        [FromQuery] DoctorAvailabilityQuery query,
+        CancellationToken cancellationToken) =>
+        Ok(await appointments.GetDoctorAvailabilityAsync(id, query, cancellationToken));
 }
