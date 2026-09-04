@@ -1,0 +1,44 @@
+.filters {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.search {
+  width: 280px;
+}
+
+.specialty {
+  width: 200px;
+}
+
+.per-page {
+  margin-left: auto;
+}
+
+.state {
+  padding: 24px 0;
+}
+
+.name {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+
+.col-specialty {
+  width: 220px;
+}
+
+.col-count {
+  width: 120px;
+}
+
+.col-actions {
+  width: 120px;
+  text-align: right;
+}

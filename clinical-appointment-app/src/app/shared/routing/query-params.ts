@@ -15,3 +15,8 @@ export function readPageSize(raw: string | null): PageSize {
 export function readText(raw: string | null): string {
   return raw?.trim() ?? '';
 }
+
+export function readId(raw: string | null): number | undefined {
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : undefined;
+}

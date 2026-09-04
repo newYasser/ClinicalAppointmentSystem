@@ -1,0 +1,87 @@
+<app-page-header kicker="Staff" heading="Doctors" />
+
+<form class="filters" (submit)="$event.preventDefault(); applySearch(searchInput.value)">
+  <div class="field search">
+    <label for="doctor-search">Search by name</label>
+    <input
+      #searchInput
+      id="doctor-search"
+      class="input"
+      type="search"
+      placeholder="e.g. Brandt"
+      [value]="search()"
+    />
+  </div>
+
+  <div class="field specialty">
+    <label for="doctor-specialty">Specialty</label>
+    <select
+      id="doctor-specialty"
+      class="input"
+      (change)="applySpecialty(specialtySelect.value)"
+      #specialtySelect
+    >
+      <option value="" [selected]="specialtyId() === undefined">All specialties</option>
+      @for (specialty of specialtyOptions(); track specialty.id) {
+        <option [value]="specialty.id" [selected]="specialty.id === specialtyId()">
+          {{ specialty.name }}
+        </option>
+      }
+    </select>
+  </div>
+
+  <button class="btn btn-secondary" type="submit">Apply</button>
+  <button class="btn btn-ghost" type="button" (click)="clearFilters()">Clear</button>
+
+  <app-page-size-select
+    class="per-page"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="changePageSize($event)"
+  />
+</form>
+
+@if (doctors.isLoading()) {
+  <p class="state text-muted">Loading doctors…</p>
+} @else if (doctors.error(); as error) {
+  <app-empty-state>
+    {{ error.message }}
+    <button type="button" class="btn btn-ghost" (click)="doctors.reload()">Try again</button>
+  </app-empty-state>
+} @else if (doctors.hasValue()) {
+  @if (doctors.value().items.length) {
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Full name</th>
+          <th class="col-specialty">Specialty</th>
+          <th class="col-count">Appointments</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (doctor of doctors.value().items; track doctor.id) {
+          <tr>
+            <td class="name">{{ doctor.fullName }}</td>
+            <td><span class="tag tag-accent">{{ doctor.specialty }}</span></td>
+            <td>{{ doctor.appointmentCount }}</td>
+            <td class="col-actions">
+              <a
+                class="btn btn-ghost"
+                routerLink="/appointments"
+                [queryParams]="{ view: 'day', doctorId: doctor.id }"
+              >
+                Day view
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else if (hasFilters()) {
+    <app-empty-state>No doctors match the current search and filter.</app-empty-state>
+  } @else {
+    <app-empty-state>No doctors on record.</app-empty-state>
+  }
+
+  <app-pagination [result]="doctors.value()" noun="doctors" (pageChange)="goToPage($event)" />
+}
