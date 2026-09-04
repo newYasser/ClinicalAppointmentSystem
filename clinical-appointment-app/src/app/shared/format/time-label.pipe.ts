@@ -1,9 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { TimeOfDay } from '../../core/models/primitives';
+import { formatTimeLabel } from './time-label';
 
 @Pipe({ name: 'timeLabel' })
 export class TimeLabelPipe implements PipeTransform {
   transform(time: TimeOfDay | null | undefined): string {
-    return time ? time.slice(0, 5) : '';
+    return formatTimeLabel(time);
   }
 }

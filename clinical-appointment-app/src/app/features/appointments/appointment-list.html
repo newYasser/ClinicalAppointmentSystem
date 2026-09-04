@@ -101,9 +101,37 @@
             <td><app-status-tag [status]="appointment.status" /></td>
             <td class="col-actions">
               <div class="actions">
+                @if (appointment.canComplete) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost"
+                    [disabled]="isBusy(appointment.id)"
+                    (click)="complete(appointment)"
+                  >
+                    Complete
+                  </button>
+                }
+                @if (appointment.canCancel) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost"
+                    [disabled]="isBusy(appointment.id)"
+                    (click)="cancel(appointment)"
+                  >
+                    Cancel
+                  </button>
+                }
                 <a class="btn btn-ghost" [routerLink]="['/appointments', appointment.id, 'edit']">
                   Edit
                 </a>
+                <button
+                  type="button"
+                  class="btn btn-ghost destructive"
+                  [disabled]="isBusy(appointment.id)"
+                  (click)="remove(appointment)"
+                >
+                  Delete
+                </button>
               </div>
             </td>
           </tr>

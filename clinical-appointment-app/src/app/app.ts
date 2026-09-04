@@ -17,7 +17,7 @@ interface NavItem {
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly clinicName = 'Meridian Clinic';
+  protected readonly clinicName = 'Clinic';
 
   protected readonly navItems: readonly NavItem[] = [
     { path: '/dashboard', label: 'Dashboard' },

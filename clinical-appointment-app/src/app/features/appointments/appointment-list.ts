@@ -1,11 +1,18 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
+import { Observable, firstValueFrom } from 'rxjs';
 
 import { AppointmentApi } from '../../core/api/appointment-api';
 import { DoctorApi } from '../../core/api/doctor-api';
+import { ApiError } from '../../core/http/api-error';
+import { AppointmentListItem } from '../../core/models/appointment';
 import { PageSize } from '../../core/models/paged-result';
+import { Confirmer } from '../../core/notifications/confirmer';
+import { Toaster } from '../../core/notifications/toaster';
+import { formatDateLabel } from '../../shared/format/date-label';
 import { DateLabelPipe } from '../../shared/format/date-label.pipe';
+import { formatTimeLabel } from '../../shared/format/time-label';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import {
   readDate,
@@ -37,6 +44,8 @@ import { StatusTag } from '../../shared/ui/status-tag';
 export class AppointmentListView {
   private readonly api = inject(AppointmentApi);
   private readonly doctorApi = inject(DoctorApi);
+  private readonly confirmer = inject(Confirmer);
+  private readonly toaster = inject(Toaster);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -71,6 +80,78 @@ export class AppointmentListView {
     }),
     stream: ({ params }) => this.api.list(params),
   });
+
+  private readonly busyId = signal<number | null>(null);
+
+  protected isBusy(id: number): boolean {
+    return this.busyId() === id;
+  }
+
+  protected async complete(appointment: AppointmentListItem): Promise<void> {
+    await this.run(appointment, this.api.complete(appointment.id), 'Appointment marked completed.');
+  }
+
+  protected async cancel(appointment: AppointmentListItem): Promise<void> {
+    const when = this.describe(appointment);
+
+    const confirmed = await this.confirmer.ask({
+      title: 'Cancel this appointment?',
+      body: appointment.patientName + ' · ' + when + '. The record stays in the list with a Cancelled status and the slot is freed.',
+      cancelLabel: 'Keep scheduled',
+      confirmLabel: 'Cancel appointment',
+    });
+
+    if (confirmed) {
+      await this.run(appointment, this.api.cancel(appointment.id), 'Appointment cancelled.');
+    }
+  }
+
+  protected async remove(appointment: AppointmentListItem): Promise<void> {
+    const confirmed = await this.confirmer.ask({
+      title: 'Delete appointment?',
+      body:
+        appointment.patientName +
+        ' with ' +
+        appointment.doctorName +
+        ' on ' +
+        this.describe(appointment) +
+        ' will be permanently deleted. To keep the record, cancel it instead.',
+      cancelLabel: 'Keep',
+      confirmLabel: 'Delete permanently',
+    });
+
+    if (confirmed) {
+      await this.run(appointment, this.api.remove(appointment.id), 'Appointment deleted.');
+    }
+  }
+
+  private describe(appointment: AppointmentListItem): string {
+    return formatDateLabel(appointment.date) + ' at ' + formatTimeLabel(appointment.startTime);
+  }
+
+  private async run(
+    appointment: AppointmentListItem,
+    request: Observable<unknown>,
+    success: string,
+  ): Promise<void> {
+    if (this.busyId() !== null) {
+      return;
+    }
+
+    this.busyId.set(appointment.id);
+
+    try {
+      await firstValueFrom(request);
+      this.toaster.success(success);
+      this.appointments.reload();
+    } catch (error) {
+      this.toaster.error(
+        error instanceof ApiError ? error.message : 'Something went wrong. Please try again.',
+      );
+    } finally {
+      this.busyId.set(null);
+    }
+  }
 
   protected readonly hasFilters = computed(
     () =>
