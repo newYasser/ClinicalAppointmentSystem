@@ -1,0 +1,64 @@
+<a class="back" routerLink="/patients">← Patients</a>
+
+@if (patient.isLoading()) {
+  <p class="state text-muted">Loading the patient record…</p>
+} @else if (patient.error(); as error) {
+  <app-empty-state>
+    {{ error.message }}
+    <button type="button" class="btn btn-ghost" (click)="patient.reload()">Try again</button>
+  </app-empty-state>
+} @else if (patient.hasValue()) {
+  <app-page-header
+    [kicker]="'Patient record ' + patient.value().id"
+    [heading]="patient.value().fullName"
+  >
+    <a
+      class="btn btn-primary action"
+      appBlueprint
+      routerLink="/appointments/new"
+      [queryParams]="{ patientId: patient.value().id }"
+    >
+      Book appointment
+    </a>
+  </app-page-header>
+
+  <div class="facts" appBlueprint>
+    @for (fact of facts(); track fact.label) {
+      <div class="fact">
+        <div class="fact-label">{{ fact.label }}</div>
+        <div class="fact-value">{{ fact.value }}</div>
+      </div>
+    }
+  </div>
+
+  <h3 class="history-head">Appointment history</h3>
+
+  @if (patient.value().appointments.length) {
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="col-date">Date</th>
+          <th class="col-time">Time</th>
+          <th>Doctor</th>
+          <th>Specialty</th>
+          <th class="col-status">Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (appointment of patient.value().appointments; track appointment.id) {
+          <tr>
+            <td>{{ appointment.date | dateLabel }}</td>
+            <td class="time">{{ appointment.startTime | timeLabel }}</td>
+            <td>{{ appointment.doctorName }}</td>
+            <td class="text-muted">{{ appointment.specialty }}</td>
+            <td><app-status-tag [status]="appointment.status" /></td>
+            <td class="notes text-muted">{{ appointment.notes || '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <app-empty-state>No appointments on record.</app-empty-state>
+  }
+}

@@ -1,0 +1,71 @@
+.back {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.state {
+  padding: 24px 0;
+}
+
+.action {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 34px;
+}
+
+.fact {
+  padding: 16px 18px;
+
+  &:not(:last-child) {
+    border-right: 1px solid var(--color-divider);
+  }
+}
+
+.fact-label {
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+
+.fact-value {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 20px;
+}
+
+.history-head {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.col-date {
+  width: 150px;
+}
+
+.col-time {
+  width: 80px;
+}
+
+.col-status {
+  width: 130px;
+}
+
+.time {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+
+.notes {
+  font-size: 12px;
+}
