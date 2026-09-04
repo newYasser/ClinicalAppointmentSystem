@@ -15,6 +15,14 @@ public sealed class PatientsController(IPatientService patients) : ApiController
         CancellationToken cancellationToken) =>
         Ok(await patients.GetListAsync(query, cancellationToken));
 
+    [HttpGet("lookup")]
+    [ProducesResponseType(typeof(IReadOnlyList<PatientLookupDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<PatientLookupDto>>> GetLookup(
+        [FromQuery] PatientLookupQuery query,
+        CancellationToken cancellationToken) =>
+        Ok(await patients.GetLookupAsync(query, cancellationToken));
+
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(PatientDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

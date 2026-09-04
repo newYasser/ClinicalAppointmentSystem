@@ -15,4 +15,8 @@ public interface IPatientService
         int id,
         PatientAppointmentsQuery query,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PatientLookupDto>> GetLookupAsync(
+        PatientLookupQuery query,
+        CancellationToken cancellationToken = default);
 }

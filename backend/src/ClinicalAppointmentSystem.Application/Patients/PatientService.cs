@@ -1,3 +1,4 @@
+using System.Globalization;
 using ClinicalAppointmentSystem.Application.Appointments;
 using ClinicalAppointmentSystem.Application.Common;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
@@ -146,19 +147,70 @@ public sealed class PatientService(IClinicDbContext db, IClinicClock clock) : IP
         return page.Map(row => row.ToDto(nowLocal));
     }
 
+    public async Task<IReadOnlyList<PatientLookupDto>> GetLookupAsync(
+        PatientLookupQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        if (query.Limit < 1 || query.Limit > PatientLookupQuery.MaxLimit)
+        {
+            throw DomainValidationException.ForField(
+                "limit",
+                $"limit must be between 1 and {PatientLookupQuery.MaxLimit}.");
+        }
+
+        var patients = db.Patients.AsNoTracking();
+
+        var pattern = SearchTerm.ToLikePattern(query.Search);
+        if (pattern is not null)
+        {
+            patients = patients.Where(p =>
+                EF.Functions.Like(p.FirstName, pattern)
+                || EF.Functions.Like(p.LastName, pattern)
+                || EF.Functions.Like(p.FirstName + " " + p.LastName, pattern));
+        }
+
+        var rows = await patients
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
+            .ThenBy(p => p.Id)
+            .Take(query.Limit)
+            .Select(p => new
+            {
+                p.Id,
+                p.FirstName,
+                p.LastName,
+                p.DateOfBirth,
+            })
+            .ToListAsync(cancellationToken);
+
+        return
+        [
+            .. rows.Select(row => new PatientLookupDto(
+                row.Id,
+                $"{row.LastName}, {row.FirstName} · {FormatDateOfBirth(row.DateOfBirth)}",
+                row.DateOfBirth)),
+        ];
+    }
+
+    // The date disambiguates patients who share a name — the seed has two Anna Dietrichs.
+    private static string FormatDateOfBirth(DateOnly date) =>
+        date.ToString("ddd d MMM yyyy", CultureInfo.InvariantCulture);
+
     private static IQueryable<Patient> Sort(
         IQueryable<Patient> query,
         string sortBy,
         bool descending) =>
+        // Every branch ends on Id: without a unique final key, tied rows come back in
+        // arbitrary order and page boundaries can repeat or drop a row.
         (sortBy, descending) switch
         {
-            (SortFirstName, false) => query.OrderBy(p => p.FirstName).ThenBy(p => p.LastName),
-            (SortFirstName, true) => query.OrderByDescending(p => p.FirstName).ThenByDescending(p => p.LastName),
+            (SortFirstName, false) => query.OrderBy(p => p.FirstName).ThenBy(p => p.LastName).ThenBy(p => p.Id),
+            (SortFirstName, true) => query.OrderByDescending(p => p.FirstName).ThenByDescending(p => p.LastName).ThenBy(p => p.Id),
             (SortDateOfBirth, false) => query.OrderBy(p => p.DateOfBirth).ThenBy(p => p.Id),
             (SortDateOfBirth, true) => query.OrderByDescending(p => p.DateOfBirth).ThenBy(p => p.Id),
             (SortAppointmentCount, false) => query.OrderBy(p => p.Appointments.Count).ThenBy(p => p.Id),
             (SortAppointmentCount, true) => query.OrderByDescending(p => p.Appointments.Count).ThenBy(p => p.Id),
-            (_, true) => query.OrderByDescending(p => p.LastName).ThenByDescending(p => p.FirstName),
-            _ => query.OrderBy(p => p.LastName).ThenBy(p => p.FirstName),
+            (_, true) => query.OrderByDescending(p => p.LastName).ThenByDescending(p => p.FirstName).ThenBy(p => p.Id),
+            _ => query.OrderBy(p => p.LastName).ThenBy(p => p.FirstName).ThenBy(p => p.Id),
         };
 }
