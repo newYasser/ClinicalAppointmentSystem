@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <!-- Test methods do not need XML docs, and unused test fixtures are normal. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ClinicalAppointmentSystem.Domain\ClinicalAppointmentSystem.Domain.csproj" />
+    <ProjectReference Include="..\..\src\ClinicalAppointmentSystem.Application\ClinicalAppointmentSystem.Application.csproj" />
+  </ItemGroup>
+
+</Project>

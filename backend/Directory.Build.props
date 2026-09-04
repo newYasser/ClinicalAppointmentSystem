@@ -1,0 +1,22 @@
+<Project>
+
+  <!-- Settings shared by every project in backend/. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Nullability and unused-code slips become build failures, not scrollback. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Public members need no XML doc comment; the type name usually says it. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+</Project>

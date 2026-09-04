@@ -1,0 +1,47 @@
+# ── .NET ──────────────────────────────────────────────────────────────
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.user
+*.suo
+*.userprefs
+*.cache
+project.lock.json
+project.assets.json
+artifacts/
+TestResults/
+*.trx
+*.coverage
+coverage*.json
+coverage*.xml
+*.received.*
+
+# ── Node / Angular ────────────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+
+# ── Secrets / local config ────────────────────────────────────────────
+# appsettings.json is committed (no secrets). Local overrides are not.
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+.env.local
+*.pfx
+
+# ── Editors / OS ──────────────────────────────────────────────────────
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.DS_Store
+Thumbs.db

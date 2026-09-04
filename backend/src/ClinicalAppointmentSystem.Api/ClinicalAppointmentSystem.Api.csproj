@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>ac4be1ca-0921-46fe-ab2a-582ceddecf09</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClinicalAppointmentSystem.Infrastructure\ClinicalAppointmentSystem.Infrastructure.csproj" />
+    <ProjectReference Include="..\ClinicalAppointmentSystem.Application\ClinicalAppointmentSystem.Application.csproj" />
+  </ItemGroup>
+
+</Project>

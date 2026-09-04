@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ClinicalAppointmentSystem.Api/ClinicalAppointmentSystem.Api.csproj" />
+    <Project Path="src/ClinicalAppointmentSystem.Application/ClinicalAppointmentSystem.Application.csproj" />
+    <Project Path="src/ClinicalAppointmentSystem.Domain/ClinicalAppointmentSystem.Domain.csproj" />
+    <Project Path="src/ClinicalAppointmentSystem.Infrastructure/ClinicalAppointmentSystem.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ClinicalAppointmentSystem.UnitTests/ClinicalAppointmentSystem.UnitTests.csproj" />
+  </Folder>
+</Solution>

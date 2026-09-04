@@ -1,0 +1,25 @@
+services:
+  mysql:
+    image: docker.io/library/mysql:${MYSQL_VERSION:-8.4}
+    container_name: ${MYSQL_CONTAINER_NAME:-clinic-mysql}
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "${MYSQL_HOST_PORT:-7000}:3306"
+
+    volumes:
+      - clinic-mysql-data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  clinic-mysql-data:
+    name: ${MYSQL_VOLUME_NAME:-clinic-mysql-data}
