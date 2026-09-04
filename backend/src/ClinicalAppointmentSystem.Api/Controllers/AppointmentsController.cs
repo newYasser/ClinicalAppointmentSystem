@@ -14,6 +14,14 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
         CancellationToken cancellationToken) =>
         Ok(await appointments.GetListAsync(query, cancellationToken));
 
+    [HttpGet("day-board")]
+    [ProducesResponseType(typeof(DayBoardDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<DayBoardDto>> GetDayBoard(
+        [FromQuery] DayBoardQuery query,
+        CancellationToken cancellationToken) =>
+        Ok(await appointments.GetDayBoardAsync(query, cancellationToken));
+
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(AppointmentDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

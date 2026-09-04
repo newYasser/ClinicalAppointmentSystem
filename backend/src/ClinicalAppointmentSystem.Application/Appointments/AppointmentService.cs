@@ -4,6 +4,7 @@ using ClinicalAppointmentSystem.Application.Common.Abstractions;
 using ClinicalAppointmentSystem.Application.Common.Pagination;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Domain.Entities;
+using ClinicalAppointmentSystem.Domain.Enums;
 using ClinicalAppointmentSystem.Domain.Exceptions;
 using ClinicalAppointmentSystem.Domain.Scheduling;
 using Microsoft.EntityFrameworkCore;
@@ -176,6 +177,99 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
         await db.SaveChangesAsync(cancellationToken);
 
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    public async Task<DayBoardDto> GetDayBoardAsync(
+        DayBoardQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        var date = query.Date!.Value;
+        var dayStart = date.ToDateTime(TimeOnly.MinValue);
+
+        var doctorQuery = db.Doctors.AsNoTracking();
+
+        if (query.SpecialtyId is { } specialtyId)
+        {
+            doctorQuery = doctorQuery.Where(d => d.SpecialtyId == specialtyId);
+        }
+
+        if (query.DoctorId is { } filterDoctorId)
+        {
+            doctorQuery = doctorQuery.Where(d => d.Id == filterDoctorId);
+        }
+
+        var doctors = await doctorQuery
+            .OrderBy(d => d.LastName)
+            .ThenBy(d => d.FirstName)
+            .ThenBy(d => d.Id)
+            .Select(d => new DayBoardDoctorDto(
+                d.Id,
+                "Dr. " + d.FirstName + " " + d.LastName,
+                d.Specialty.Name))
+            .ToListAsync(cancellationToken);
+
+        var doctorIds = doctors.Select(d => d.Id).ToList();
+
+        // LiveBetween matches on ActiveSlot, so cancelled appointments are absent from the
+        // board and their slots show as free — which is the point of cancelling.
+        var booked = await db.Appointments
+            .AsNoTracking()
+            .Where(AppointmentSpecifications.LiveBetween(dayStart, dayStart.AddDays(1)))
+            .Where(a => doctorIds.Contains(a.DoctorId))
+            .Select(a => new
+            {
+                a.Id,
+                a.DoctorId,
+                a.PatientId,
+                a.ActiveSlot,
+                a.Status,
+                PatientFirstName = a.Patient.FirstName,
+                PatientLastName = a.Patient.LastName,
+            })
+            .ToListAsync(cancellationToken);
+
+        // At most one live appointment per (doctor, slot) — the unique index guarantees it.
+        var occupied = booked.ToDictionary(
+            a => (a.DoctorId, TimeOnly.FromDateTime(a.ActiveSlot!.Value)));
+
+        var nowLocal = clock.NowLocal;
+
+        var rows = ClinicSchedule.Slots
+            .Select(slot =>
+            {
+                var slotIsPast = ClinicSchedule.IsInPast(date.ToDateTime(slot), nowLocal);
+
+                var cells = doctors
+                    .Select(doctor =>
+                    {
+                        if (occupied.TryGetValue((doctor.Id, slot), out var appointment))
+                        {
+                            return new DayBoardCellDto(
+                                doctor.Id,
+                                appointment.Status == AppointmentStatus.Completed
+                                    ? DayBoardCellState.Completed
+                                    : DayBoardCellState.Booked,
+                                appointment.Id,
+                                appointment.PatientId,
+                                $"{appointment.PatientFirstName} {appointment.PatientLastName}",
+                                appointment.Status);
+                        }
+
+                        return new DayBoardCellDto(
+                            doctor.Id,
+                            slotIsPast ? DayBoardCellState.Past : DayBoardCellState.Free,
+                            null,
+                            null,
+                            null,
+                            null);
+                    })
+                    .ToList();
+
+                return new DayBoardRowDto(slot, cells);
+            })
+            .ToList();
+
+        return new DayBoardDto(date, doctors, rows);
     }
 
     // The state machine itself lives in Appointment.Cancel, which refuses anything that is
