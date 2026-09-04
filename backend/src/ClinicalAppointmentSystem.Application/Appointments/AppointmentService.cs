@@ -197,6 +197,25 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
         return await GetByIdAsync(id, cancellationToken);
     }
 
+    // Unlike cancel, a completed appointment keeps its ActiveSlot: the doctor's time was
+    // genuinely consumed, so the slot must stay occupied.
+    public async Task<AppointmentDetailDto> CompleteAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var appointment = await db.Appointments
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken)
+            ?? throw new NotFoundException(
+                ErrorCodes.AppointmentNotFound,
+                $"Appointment {id} was not found.");
+
+        appointment.Complete();
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(id, cancellationToken);
+    }
+
     // Hard delete, distinct from cancel: this leaves no record. Deleted in one round trip
     // rather than loading the entity first; the affected row count gives the 404.
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
