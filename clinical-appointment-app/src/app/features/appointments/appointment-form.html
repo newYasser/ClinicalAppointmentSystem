@@ -1,0 +1,84 @@
+<a class="back" routerLink="/appointments">← Cancel</a>
+
+<div class="title">
+  <h1>New appointment</h1>
+  <span class="tag tag-outline">Scheduled · {{ durationMinutes() }} min</span>
+</div>
+
+@if (conflict(); as message) {
+  <div class="conflict" appBlueprint role="alert">
+    <div class="conflict-title">Cannot schedule</div>
+    <div class="conflict-body">{{ message }}</div>
+  </div>
+}
+
+<form class="panel" appBlueprint [formGroup]="form" (ngSubmit)="save()">
+  <div class="grid">
+    <div class="field">
+      <label for="form-patient">Patient *</label>
+      <select id="form-patient" class="input" formControlName="patientId">
+        <option [ngValue]="null">Select a patient…</option>
+        @for (patient of patientOptions(); track patient.id) {
+          <option [ngValue]="patient.id">{{ patient.label }}</option>
+        }
+      </select>
+      @if (fieldError('patientId'); as message) {
+        <div class="error">{{ message }}</div>
+      }
+    </div>
+
+    <div class="field">
+      <label for="form-doctor">Doctor *</label>
+      <select id="form-doctor" class="input" formControlName="doctorId">
+        <option [ngValue]="null">Select a doctor…</option>
+        @for (doctor of doctorOptions(); track doctor.id) {
+          <option [ngValue]="doctor.id">{{ doctor.label }}</option>
+        }
+      </select>
+      @if (fieldError('doctorId'); as message) {
+        <div class="error">{{ message }}</div>
+      }
+    </div>
+
+    <div class="field">
+      <label for="form-date">Date *</label>
+      <input id="form-date" class="input" type="date" formControlName="date" />
+      @if (fieldError('date'); as message) {
+        <div class="error">{{ message }}</div>
+      }
+    </div>
+
+    <div class="field">
+      <label for="form-time">Time * — {{ durationMinutes() }}-minute slot</label>
+      <select id="form-time" class="input" formControlName="startTime">
+        <option value="">Select a time…</option>
+        @for (slot of slots(); track slot) {
+          <option [value]="slot">{{ slot | timeLabel }}</option>
+        }
+      </select>
+      @if (fieldError('startTime'); as message) {
+        <div class="error">{{ message }}</div>
+      }
+    </div>
+
+    <div class="field notes">
+      <label for="form-notes">Notes — optional</label>
+      <textarea
+        id="form-notes"
+        class="input"
+        formControlName="notes"
+        placeholder="Reason for visit, referrals, preparation…"
+      ></textarea>
+      @if (fieldError('notes'); as message) {
+        <div class="error">{{ message }}</div>
+      }
+    </div>
+  </div>
+
+  <div class="actions">
+    <a class="btn btn-secondary" routerLink="/appointments">Cancel</a>
+    <button class="btn btn-primary save" type="submit" [disabled]="saving()">
+      Save appointment
+    </button>
+  </div>
+</form>
