@@ -1,0 +1,70 @@
+<app-page-header kicker="Records" heading="Patients" />
+
+<form class="filters" (submit)="$event.preventDefault(); applySearch(searchInput.value)">
+  <div class="field search">
+    <label for="patient-search">Search name, phone or email</label>
+    <input
+      #searchInput
+      id="patient-search"
+      class="input"
+      type="search"
+      placeholder="e.g. Keller or 0170…"
+      [value]="search()"
+    />
+  </div>
+
+  <button class="btn btn-secondary" type="submit">Search</button>
+  <button class="btn btn-ghost" type="button" (click)="clearSearch()">Clear</button>
+
+  <app-page-size-select
+    class="per-page"
+    [pageSize]="pageSize()"
+    (pageSizeChange)="changePageSize($event)"
+  />
+</form>
+
+@if (patients.isLoading()) {
+  <p class="state text-muted">Loading patients…</p>
+} @else if (patients.error(); as error) {
+  <app-empty-state>
+    {{ error.message }}
+    <button type="button" class="btn btn-ghost" (click)="patients.reload()">Try again</button>
+  </app-empty-state>
+} @else if (patients.hasValue()) {
+  @if (patients.value().items.length) {
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Full name</th>
+          <th class="col-dob">Date of birth</th>
+          <th class="col-phone">Phone</th>
+          <th>Email</th>
+          <th class="col-count">Appointments</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (patient of patients.value().items; track patient.id) {
+          <tr>
+            <td>
+              <a class="name" [routerLink]="['/patients', patient.id]">{{ patient.fullName }}</a>
+            </td>
+            <td>{{ patient.dateOfBirth | dateLabel }}</td>
+            <td>{{ patient.phone }}</td>
+            <td class="text-muted">{{ patient.email }}</td>
+            <td>{{ patient.appointmentCount }}</td>
+            <td class="col-actions">
+              <a class="btn btn-ghost" [routerLink]="['/patients', patient.id]">Open</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else if (search()) {
+    <app-empty-state>No patients match “{{ search() }}”.</app-empty-state>
+  } @else {
+    <app-empty-state>No patients on record.</app-empty-state>
+  }
+
+  <app-pagination [result]="patients.value()" noun="patients" (pageChange)="goToPage($event)" />
+}
