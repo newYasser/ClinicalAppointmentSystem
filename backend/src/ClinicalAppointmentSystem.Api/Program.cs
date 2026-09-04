@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ClinicalAppointmentSystem.Api.ErrorHandling;
+using ClinicalAppointmentSystem.Application;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +41,8 @@ builder.Services.AddCors(options =>
         .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
         .AllowAnyHeader()
         .AllowAnyMethod()));
+
+builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("ClinicDb")
