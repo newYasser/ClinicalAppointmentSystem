@@ -1,9 +1,15 @@
-var builder = WebApplication.CreateBuilder(args);
+using ClinicalAppointmentSystem.Infrastructure;
 
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
+
+builder.Services.AddInfrastructure(
+    builder.Configuration.GetConnectionString("ClinicDb")
+    ?? throw new InvalidOperationException(
+        "Connection string 'ClinicDb' is not configured. Set it in user-secrets or appsettings."));
 
 var app = builder.Build();
 
