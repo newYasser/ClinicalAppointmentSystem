@@ -75,3 +75,33 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+.availability {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-divider);
+}
+
+.availability-label {
+  margin-bottom: 10px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.slot {
+  min-width: 64px;
+}
+
+.is-taken {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}

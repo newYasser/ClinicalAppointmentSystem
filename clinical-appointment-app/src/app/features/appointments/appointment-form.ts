@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -10,7 +10,9 @@ import { PatientApi } from '../../core/api/patient-api';
 import { ClinicConfig } from '../../core/clinic/clinic-config';
 import { ApiError } from '../../core/http/api-error';
 import { AppointmentRequest } from '../../core/models/appointment';
+import { TimeOfDay } from '../../core/models/primitives';
 import { Toaster } from '../../core/notifications/toaster';
+import { formatDateLabel } from '../../shared/format/date-label';
 import { isIsoDate } from '../../shared/format/iso-date';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { readId } from '../../shared/routing/query-params';
@@ -25,6 +27,12 @@ const MESSAGES: Record<FieldName, string> = {
   startTime: 'Appointment time is required.',
   notes: 'Notes cannot exceed 1000 characters.',
 };
+
+interface SlotOption {
+  readonly time: TimeOfDay;
+  readonly picked: boolean;
+  readonly free: boolean;
+}
 
 @Component({
   selector: 'app-appointment-form',
@@ -70,6 +78,55 @@ export class AppointmentForm {
     notes: new FormControl('', Validators.maxLength(1000)),
   });
 
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
+
+  private readonly chosenDoctorId = computed(() => this.formValue().doctorId ?? null);
+  private readonly chosenPatientId = computed(() => this.formValue().patientId ?? null);
+  private readonly chosenDate = computed(() => this.formValue().date ?? '');
+  private readonly chosenTime = computed(() => this.formValue().startTime ?? '');
+
+  private readonly availability = rxResource({
+    params: () => {
+      const doctorId = this.chosenDoctorId();
+      const date = this.chosenDate();
+
+      if (doctorId === null || !isIsoDate(date)) {
+        return undefined;
+      }
+
+      return { doctorId, date, patientId: this.chosenPatientId() ?? undefined };
+    },
+    stream: ({ params }) =>
+      this.doctorApi.availability(params.doctorId, {
+        date: params.date,
+        patientId: params.patientId,
+      }),
+  });
+
+  protected readonly availabilityLabel = computed(() => {
+    const loaded = this.availability.hasValue() ? this.availability.value() : undefined;
+
+    return loaded ? `Availability — ${loaded.doctorName} · ${formatDateLabel(loaded.date)}` : '';
+  });
+
+  protected readonly availabilityLoading = this.availability.isLoading;
+
+  protected readonly slotOptions = computed<readonly SlotOption[]>(() => {
+    if (!this.availability.hasValue()) {
+      return [];
+    }
+
+    const picked = this.chosenTime();
+
+    return this.availability.value().slots.map((slot) => ({
+      time: slot.startTime,
+      picked: slot.startTime === picked,
+      free: slot.state === 'Free',
+    }));
+  });
+
   protected readonly submitted = signal(false);
   protected readonly saving = signal(false);
   protected readonly conflict = signal<string | null>(null);
@@ -87,6 +144,11 @@ export class AppointmentForm {
       date: isIsoDate(date) ? date : '',
       startTime: startTime ?? '',
     });
+  }
+
+  protected pickSlot(time: TimeOfDay): void {
+    this.form.patchValue({ startTime: time });
+    this.conflict.set(null);
   }
 
   protected fieldError(name: FieldName): string | null {
@@ -148,5 +210,6 @@ export class AppointmentForm {
     }
 
     this.conflict.set(error.message);
+    this.availability.reload();
   }
 }

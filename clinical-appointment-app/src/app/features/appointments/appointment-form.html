@@ -75,6 +75,30 @@
     </div>
   </div>
 
+  @if (availabilityLabel() || availabilityLoading()) {
+    <div class="availability">
+      <div class="availability-label">
+        {{ availabilityLoading() ? 'Availability — loading…' : availabilityLabel() }}
+      </div>
+
+      <div class="slots">
+        @for (slot of slotOptions(); track slot.time) {
+          @if (slot.picked) {
+            <button type="button" class="btn btn-primary slot" (click)="pickSlot(slot.time)">
+              {{ slot.time | timeLabel }}
+            </button>
+          } @else if (slot.free) {
+            <button type="button" class="btn btn-secondary slot" (click)="pickSlot(slot.time)">
+              {{ slot.time | timeLabel }}
+            </button>
+          } @else {
+            <span class="btn slot is-taken" aria-disabled="true">{{ slot.time | timeLabel }}</span>
+          }
+        }
+      </div>
+    </div>
+  }
+
   <div class="actions">
     <a class="btn btn-secondary" routerLink="/appointments">Cancel</a>
     <button class="btn btn-primary save" type="submit" [disabled]="saving()">
