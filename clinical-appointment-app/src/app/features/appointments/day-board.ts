@@ -10,10 +10,11 @@ import { isIsoDate, shiftIsoDate, todayIso } from '../../shared/format/iso-date'
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { readId } from '../../shared/routing/query-params';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 
 @Component({
   selector: 'app-day-board',
-  imports: [RouterLink, EmptyState, TimeLabelPipe],
+  imports: [ScreenState, RouterLink, EmptyState, TimeLabelPipe],
   templateUrl: './day-board.html',
   styleUrl: './day-board.scss',
 })

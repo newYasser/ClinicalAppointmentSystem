@@ -48,14 +48,14 @@
 
 <div class="heading">{{ heading() }}</div>
 
-@if (board.isLoading()) {
-  <p class="state text-muted">Loading the day…</p>
-} @else if (board.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="board.reload()">Try again</button>
-  </app-empty-state>
-} @else if (board.hasValue()) {
+<app-screen-state
+  [loading]="board.isLoading()"
+  [error]="board.error()"
+  message="Loading the day…"
+  (retry)="board.reload()"
+/>
+
+@if (board.hasValue()) {
   @if (board.value().doctors.length) {
     <div class="scroller">
       <div class="grid">

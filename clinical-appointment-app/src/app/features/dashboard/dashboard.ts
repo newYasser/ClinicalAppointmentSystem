@@ -7,6 +7,7 @@ import { shiftIsoDate } from '../../shared/format/iso-date';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { Blueprint } from '../../shared/ui/blueprint';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { StatusTag } from '../../shared/ui/status-tag';
 
@@ -20,7 +21,7 @@ interface StatTile {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, Blueprint, PageHeader, StatusTag, EmptyState, TimeLabelPipe],
+  imports: [ScreenState, RouterLink, Blueprint, PageHeader, StatusTag, EmptyState, TimeLabelPipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

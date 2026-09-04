@@ -23,13 +23,14 @@ import {
   readText,
 } from '../../shared/routing/query-params';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 import { PageSizeSelect } from '../../shared/ui/page-size-select';
 import { Pagination } from '../../shared/ui/pagination';
 import { StatusTag } from '../../shared/ui/status-tag';
 
 @Component({
   selector: 'app-appointment-list',
-  imports: [
+  imports: [ScreenState, 
     RouterLink,
     PageSizeSelect,
     Pagination,

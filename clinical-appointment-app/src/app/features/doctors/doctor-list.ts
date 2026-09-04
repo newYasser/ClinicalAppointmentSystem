@@ -7,13 +7,14 @@ import { SpecialtyApi } from '../../core/api/specialty-api';
 import { PageSize } from '../../core/models/paged-result';
 import { readId, readPage, readPageSize, readText } from '../../shared/routing/query-params';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { PageSizeSelect } from '../../shared/ui/page-size-select';
 import { Pagination } from '../../shared/ui/pagination';
 
 @Component({
   selector: 'app-doctor-list',
-  imports: [RouterLink, PageHeader, PageSizeSelect, Pagination, EmptyState],
+  imports: [ScreenState, RouterLink, PageHeader, PageSizeSelect, Pagination, EmptyState],
   templateUrl: './doctor-list.html',
   styleUrl: './doctor-list.scss',
 })

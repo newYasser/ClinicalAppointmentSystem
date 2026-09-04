@@ -23,14 +23,14 @@
   />
 </form>
 
-@if (patients.isLoading()) {
-  <p class="state text-muted">Loading patients…</p>
-} @else if (patients.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="patients.reload()">Try again</button>
-  </app-empty-state>
-} @else if (patients.hasValue()) {
+<app-screen-state
+  [loading]="patients.isLoading()"
+  [error]="patients.error()"
+  message="Loading patients…"
+  (retry)="patients.reload()"
+/>
+
+@if (patients.hasValue()) {
   @if (patients.value().items.length) {
     <table class="table">
       <thead>

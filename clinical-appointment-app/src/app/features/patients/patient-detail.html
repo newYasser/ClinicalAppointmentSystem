@@ -1,13 +1,13 @@
 <a class="back" routerLink="/patients">← Patients</a>
 
-@if (patient.isLoading()) {
-  <p class="state text-muted">Loading the patient record…</p>
-} @else if (patient.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="patient.reload()">Try again</button>
-  </app-empty-state>
-} @else if (patient.hasValue()) {
+<app-screen-state
+  [loading]="patient.isLoading()"
+  [error]="patient.error()"
+  message="Loading the patient record…"
+  (retry)="patient.reload()"
+/>
+
+@if (patient.hasValue()) {
   <app-page-header
     [kicker]="'Patient record ' + patient.value().id"
     [heading]="patient.value().fullName"

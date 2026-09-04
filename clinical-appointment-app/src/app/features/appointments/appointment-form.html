@@ -1,13 +1,13 @@
 <a class="back" routerLink="/appointments">← Cancel</a>
 
-@if (existing.isLoading()) {
-  <p class="state text-muted">Loading the appointment…</p>
-} @else if (existing.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="existing.reload()">Try again</button>
-  </app-empty-state>
-} @else {
+<app-screen-state
+  [loading]="existing.isLoading()"
+  [error]="existing.error()"
+  message="Loading the appointment…"
+  (retry)="existing.reload()"
+/>
+
+@if (!existing.isLoading() && !existing.error()) {
 <div class="title">
   <h1>{{ title() }}</h1>
   <span class="tag tag-outline">{{ status() }} · {{ durationMinutes() }} min</span>

@@ -40,14 +40,14 @@
   />
 </form>
 
-@if (doctors.isLoading()) {
-  <p class="state text-muted">Loading doctors…</p>
-} @else if (doctors.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="doctors.reload()">Try again</button>
-  </app-empty-state>
-} @else if (doctors.hasValue()) {
+<app-screen-state
+  [loading]="doctors.isLoading()"
+  [error]="doctors.error()"
+  message="Loading doctors…"
+  (retry)="doctors.reload()"
+/>
+
+@if (doctors.hasValue()) {
   @if (doctors.value().items.length) {
     <table class="table">
       <thead>

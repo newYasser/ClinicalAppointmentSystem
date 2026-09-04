@@ -18,7 +18,7 @@ import { isIsoDate } from '../../shared/format/iso-date';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { readId } from '../../shared/routing/query-params';
 import { Blueprint } from '../../shared/ui/blueprint';
-import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 
 type FieldName = 'patientId' | 'doctorId' | 'date' | 'startTime' | 'notes';
 
@@ -38,7 +38,7 @@ interface SlotOption {
 
 @Component({
   selector: 'app-appointment-form',
-  imports: [ReactiveFormsModule, RouterLink, Blueprint, EmptyState, TimeLabelPipe],
+  imports: [ScreenState, ReactiveFormsModule, RouterLink, Blueprint, TimeLabelPipe],
   templateUrl: './appointment-form.html',
   styleUrl: './appointment-form.scss',
 })

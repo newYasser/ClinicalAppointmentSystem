@@ -65,14 +65,14 @@
   />
 </form>
 
-@if (appointments.isLoading()) {
-  <p class="state text-muted">Loading appointments…</p>
-} @else if (appointments.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="appointments.reload()">Try again</button>
-  </app-empty-state>
-} @else if (appointments.hasValue()) {
+<app-screen-state
+  [loading]="appointments.isLoading()"
+  [error]="appointments.error()"
+  message="Loading appointments…"
+  (retry)="appointments.reload()"
+/>
+
+@if (appointments.hasValue()) {
   @if (appointments.value().items.length) {
     <table class="table">
       <thead>

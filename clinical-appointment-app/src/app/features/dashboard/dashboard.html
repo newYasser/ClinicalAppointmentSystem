@@ -9,14 +9,14 @@
   </a>
 </app-page-header>
 
-@if (summary.isLoading()) {
-  <p class="state text-muted">Loading the clinic summary…</p>
-} @else if (summary.error(); as error) {
-  <app-empty-state>
-    {{ error.message }}
-    <button type="button" class="btn btn-ghost" (click)="summary.reload()">Try again</button>
-  </app-empty-state>
-} @else if (summary.hasValue()) {
+<app-screen-state
+  [loading]="summary.isLoading()"
+  [error]="summary.error()"
+  message="Loading the clinic summary…"
+  (retry)="summary.reload()"
+/>
+
+@if (summary.hasValue()) {
   <div class="stats">
     @for (tile of tiles(); track tile.label) {
       <a class="card stat" appBlueprint [routerLink]="tile.link" [queryParams]="tile.queryParams">

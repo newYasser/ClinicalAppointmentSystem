@@ -7,13 +7,14 @@ import { PageSize } from '../../core/models/paged-result';
 import { DateLabelPipe } from '../../shared/format/date-label.pipe';
 import { readPage, readPageSize, readText } from '../../shared/routing/query-params';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { PageSizeSelect } from '../../shared/ui/page-size-select';
 import { Pagination } from '../../shared/ui/pagination';
 
 @Component({
   selector: 'app-patient-list',
-  imports: [RouterLink, PageHeader, PageSizeSelect, Pagination, EmptyState, DateLabelPipe],
+  imports: [ScreenState, RouterLink, PageHeader, PageSizeSelect, Pagination, EmptyState, DateLabelPipe],
   templateUrl: './patient-list.html',
   styleUrl: './patient-list.scss',
 })

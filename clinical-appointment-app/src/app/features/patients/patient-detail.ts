@@ -8,6 +8,7 @@ import { DateLabelPipe } from '../../shared/format/date-label.pipe';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { Blueprint } from '../../shared/ui/blueprint';
 import { EmptyState } from '../../shared/ui/empty-state';
+import { ScreenState } from '../../shared/ui/screen-state';
 import { PageHeader } from '../../shared/ui/page-header';
 import { StatusTag } from '../../shared/ui/status-tag';
 
@@ -18,7 +19,7 @@ interface Fact {
 
 @Component({
   selector: 'app-patient-detail',
-  imports: [
+  imports: [ScreenState, 
     RouterLink,
     Blueprint,
     PageHeader,
