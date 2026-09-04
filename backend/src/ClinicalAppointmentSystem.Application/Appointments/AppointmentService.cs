@@ -134,6 +134,50 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
         return await GetByIdAsync(appointment.Id, cancellationToken);
     }
 
+    public async Task<AppointmentDetailDto> UpdateAsync(
+        int id,
+        UpdateAppointmentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var patientId = request.PatientId!.Value;
+        var doctorId = request.DoctorId!.Value;
+        var date = request.Date!.Value;
+        var startTime = request.StartTime!.Value;
+
+        var appointment = await db.Appointments
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken)
+            ?? throw new NotFoundException(
+                ErrorCodes.AppointmentNotFound,
+                $"Appointment {id} was not found.");
+
+        ClinicSchedule.EnsureValidSlotStart(startTime);
+
+        await EnsurePatientExistsAsync(patientId, cancellationToken);
+        await EnsureDoctorExistsAsync(doctorId, cancellationToken);
+
+        var scheduledAt = date.ToDateTime(startTime);
+
+        // The past rule governs rescheduling. Applying it to an unchanged slot would make a
+        // notes-only edit impossible on any appointment whose time has already passed.
+        if (scheduledAt != appointment.ScheduledAt)
+        {
+            EnsureNotInPast(scheduledAt);
+        }
+
+        // A cancelled appointment holds no slot, so it cannot clash with anything. Completed
+        // ones still hold theirs, so they are checked.
+        if (appointment.IsLive)
+        {
+            await EnsureSlotIsFreeAsync(scheduledAt, doctorId, patientId, id, cancellationToken);
+        }
+
+        appointment.UpdateDetails(patientId, doctorId, date, startTime, request.Notes);
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(id, cancellationToken);
+    }
+
     private async Task EnsurePatientExistsAsync(int patientId, CancellationToken cancellationToken)
     {
         if (!await db.Patients.AnyAsync(p => p.Id == patientId, cancellationToken))

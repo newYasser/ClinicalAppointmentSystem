@@ -13,4 +13,9 @@ public interface IAppointmentService
     Task<AppointmentDetailDto> CreateAsync(
         CreateAppointmentRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<AppointmentDetailDto> UpdateAsync(
+        int id,
+        UpdateAppointmentRequest request,
+        CancellationToken cancellationToken = default);
 }

@@ -35,4 +35,15 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
+
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(AppointmentDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AppointmentDetailDto>> Update(
+        int id,
+        [FromBody] UpdateAppointmentRequest request,
+        CancellationToken cancellationToken) =>
+        Ok(await appointments.UpdateAsync(id, request, cancellationToken));
 }
