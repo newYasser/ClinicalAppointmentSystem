@@ -1,0 +1,39 @@
+<app-page-header kicker="Scheduling · 30-minute slots" heading="Appointments">
+  <div class="seg" role="group" aria-label="Appointment view">
+    <label class="seg-opt">
+      <input
+        type="radio"
+        name="appointments-view"
+        value="day"
+        [checked]="view() === 'day'"
+        (change)="setView('day')"
+      />
+      Day board
+    </label>
+    <label class="seg-opt">
+      <input
+        type="radio"
+        name="appointments-view"
+        value="list"
+        [checked]="view() === 'list'"
+        (change)="setView('list')"
+      />
+      List
+    </label>
+  </div>
+
+  <a
+    class="btn btn-primary action"
+    appBlueprint
+    routerLink="/appointments/new"
+    [queryParams]="newAppointmentParams()"
+  >
+    New appointment
+  </a>
+</app-page-header>
+
+@if (view() === 'day') {
+  <app-day-board />
+} @else {
+  <app-appointment-list />
+}
