@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -10,6 +10,7 @@ import { PatientApi } from '../../core/api/patient-api';
 import { ClinicConfig } from '../../core/clinic/clinic-config';
 import { ApiError } from '../../core/http/api-error';
 import { AppointmentRequest } from '../../core/models/appointment';
+import { AppointmentStatus } from '../../core/models/appointment-status';
 import { TimeOfDay } from '../../core/models/primitives';
 import { Toaster } from '../../core/notifications/toaster';
 import { formatDateLabel } from '../../shared/format/date-label';
@@ -17,6 +18,7 @@ import { isIsoDate } from '../../shared/format/iso-date';
 import { TimeLabelPipe } from '../../shared/format/time-label.pipe';
 import { readId } from '../../shared/routing/query-params';
 import { Blueprint } from '../../shared/ui/blueprint';
+import { EmptyState } from '../../shared/ui/empty-state';
 
 type FieldName = 'patientId' | 'doctorId' | 'date' | 'startTime' | 'notes';
 
@@ -36,7 +38,7 @@ interface SlotOption {
 
 @Component({
   selector: 'app-appointment-form',
-  imports: [ReactiveFormsModule, RouterLink, Blueprint, TimeLabelPipe],
+  imports: [ReactiveFormsModule, RouterLink, Blueprint, EmptyState, TimeLabelPipe],
   templateUrl: './appointment-form.html',
   styleUrl: './appointment-form.scss',
 })
@@ -51,6 +53,16 @@ export class AppointmentForm {
 
   protected readonly slots = this.clinic.slots;
   protected readonly durationMinutes = this.clinic.durationMinutes;
+
+  private readonly routeParams = toSignal(this.route.paramMap, { requireSync: true });
+
+  protected readonly appointmentId = computed(() => readId(this.routeParams().get('id')));
+  protected readonly isEdit = computed(() => this.appointmentId() !== undefined);
+
+  protected readonly existing = rxResource({
+    params: () => this.appointmentId(),
+    stream: ({ params: id }) => this.api.get(id),
+  });
 
   private readonly patients = rxResource({
     stream: () => this.patientApi.lookup(),
@@ -96,14 +108,28 @@ export class AppointmentForm {
         return undefined;
       }
 
-      return { doctorId, date, patientId: this.chosenPatientId() ?? undefined };
+      return {
+        doctorId,
+        date,
+        patientId: this.chosenPatientId() ?? undefined,
+        excludeAppointmentId: this.appointmentId(),
+      };
     },
     stream: ({ params }) =>
       this.doctorApi.availability(params.doctorId, {
         date: params.date,
         patientId: params.patientId,
+        excludeAppointmentId: params.excludeAppointmentId,
       }),
   });
+
+  protected readonly title = computed(() =>
+    this.isEdit() ? 'Edit appointment' : 'New appointment',
+  );
+
+  protected readonly status = computed<AppointmentStatus>(() =>
+    this.existing.hasValue() ? this.existing.value().status : 'Scheduled',
+  );
 
   protected readonly availabilityLabel = computed(() => {
     const loaded = this.availability.hasValue() ? this.availability.value() : undefined;
@@ -132,17 +158,32 @@ export class AppointmentForm {
   protected readonly conflict = signal<string | null>(null);
 
   private readonly serverErrors = signal<Record<string, string[]>>({});
+  private seededId: number | null = null;
 
   constructor() {
-    const params = this.route.snapshot.queryParamMap;
-    const date = params.get('date');
-    const startTime = params.get('startTime');
+    if (!this.isEdit()) {
+      this.seedFromQueryParams();
+    }
 
-    this.form.patchValue({
-      patientId: readId(params.get('patientId')) ?? null,
-      doctorId: readId(params.get('doctorId')) ?? null,
-      date: isIsoDate(date) ? date : '',
-      startTime: startTime ?? '',
+    effect(() => {
+      if (!this.existing.hasValue()) {
+        return;
+      }
+
+      const appointment = this.existing.value();
+
+      if (this.seededId === appointment.id) {
+        return;
+      }
+
+      this.seededId = appointment.id;
+      this.form.patchValue({
+        patientId: appointment.patientId,
+        doctorId: appointment.doctorId,
+        date: appointment.date,
+        startTime: appointment.startTime,
+        notes: appointment.notes ?? '',
+      });
     });
   }
 
@@ -172,18 +213,38 @@ export class AppointmentForm {
 
     this.saving.set(true);
 
-    try {
-      const created = await firstValueFrom(this.api.create(this.toRequest()));
+    const id = this.appointmentId();
+    const request = this.toRequest();
 
-      this.toaster.success('Appointment scheduled.');
+    try {
+      const saved = await firstValueFrom(
+        id === undefined ? this.api.create(request) : this.api.update(id, request),
+      );
+
+      this.toaster.success(
+        id === undefined ? 'Appointment scheduled.' : 'Appointment updated.',
+      );
       await this.router.navigate(['/appointments'], {
-        queryParams: { view: 'day', date: created.date },
+        queryParams: { view: 'day', date: saved.date },
       });
     } catch (error) {
       this.report(error);
     } finally {
       this.saving.set(false);
     }
+  }
+
+  private seedFromQueryParams(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const date = params.get('date');
+    const startTime = params.get('startTime');
+
+    this.form.patchValue({
+      patientId: readId(params.get('patientId')) ?? null,
+      doctorId: readId(params.get('doctorId')) ?? null,
+      date: isIsoDate(date) ? date : '',
+      startTime: startTime ?? '',
+    });
   }
 
   private toRequest(): AppointmentRequest {
