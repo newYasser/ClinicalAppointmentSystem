@@ -1,11 +1,17 @@
+using System.Text.Json.Serialization;
 using ClinicalAppointmentSystem.Api.ErrorHandling;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
+const string CorsPolicy = "AngularClient";
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddOpenApi();
 
@@ -29,6 +35,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+    options.AddPolicy(CorsPolicy, policy => policy
+        .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("ClinicDb")
     ?? throw new InvalidOperationException(
@@ -46,8 +58,12 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
+app.UseCors(CorsPolicy);
 
 app.UseAuthorization();
 
