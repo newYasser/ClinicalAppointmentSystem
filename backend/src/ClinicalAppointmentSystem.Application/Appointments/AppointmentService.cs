@@ -273,6 +273,9 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
         return new DayBoardDto(date, doctors, rows);
     }
 
+    public ClinicSlotsDto GetSlots() =>
+        new(ClinicSchedule.SlotDurationMinutes, ClinicSchedule.Slots);
+
     public async Task<DoctorAvailabilityDto> GetDoctorAvailabilityAsync(
         int doctorId,
         DoctorAvailabilityQuery query,

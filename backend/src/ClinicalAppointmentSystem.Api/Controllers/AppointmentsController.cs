@@ -14,6 +14,10 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
         CancellationToken cancellationToken) =>
         Ok(await appointments.GetListAsync(query, cancellationToken));
 
+    [HttpGet("slots")]
+    [ProducesResponseType(typeof(ClinicSlotsDto), StatusCodes.Status200OK)]
+    public ActionResult<ClinicSlotsDto> GetSlots() => Ok(appointments.GetSlots());
+
     [HttpGet("day-board")]
     [ProducesResponseType(typeof(DayBoardDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

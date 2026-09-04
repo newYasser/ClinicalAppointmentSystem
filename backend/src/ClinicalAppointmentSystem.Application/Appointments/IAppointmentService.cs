@@ -34,4 +34,6 @@ public interface IAppointmentService
         int doctorId,
         DoctorAvailabilityQuery query,
         CancellationToken cancellationToken = default);
+
+    ClinicSlotsDto GetSlots();
 }
