@@ -178,6 +178,22 @@ public sealed class AppointmentService(IClinicDbContext db, IClinicClock clock) 
         return await GetByIdAsync(id, cancellationToken);
     }
 
+    // Hard delete, distinct from cancel: this leaves no record. Deleted in one round trip
+    // rather than loading the entity first; the affected row count gives the 404.
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var deleted = await db.Appointments
+            .Where(a => a.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        if (deleted == 0)
+        {
+            throw new NotFoundException(
+                ErrorCodes.AppointmentNotFound,
+                $"Appointment {id} was not found.");
+        }
+    }
+
     private async Task EnsurePatientExistsAsync(int patientId, CancellationToken cancellationToken)
     {
         if (!await db.Patients.AnyAsync(p => p.Id == patientId, cancellationToken))

@@ -46,4 +46,14 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
         [FromBody] UpdateAppointmentRequest request,
         CancellationToken cancellationToken) =>
         Ok(await appointments.UpdateAsync(id, request, cancellationToken));
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        await appointments.DeleteAsync(id, cancellationToken);
+
+        return NoContent();
+    }
 }
