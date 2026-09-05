@@ -7,6 +7,10 @@ namespace ClinicalAppointmentSystem.Api.Controllers;
 [AllowAnonymous]
 public sealed class AuthController(IAuthService auth) : ApiControllerBase
 {
+    [HttpGet("config")]
+    [ProducesResponseType(typeof(AuthConfigDto), StatusCodes.Status200OK)]
+    public ActionResult<AuthConfigDto> GetConfig() => Ok(auth.GetConfig());
+
     [HttpPost("google")]
     [ProducesResponseType(typeof(SignInResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

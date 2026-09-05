@@ -30,6 +30,8 @@ public static class DependencyInjection
         services.AddSingleton<IAccessTokenIssuer>(sp =>
             new JwtAccessTokenIssuer(jwtSettings, sp.GetRequiredService<IClinicClock>()));
 
+        services.AddSingleton(googleSettings);
+
         services.AddSingleton<IGoogleTokenValidator>(new GoogleTokenValidator(googleSettings));
 
         return services;

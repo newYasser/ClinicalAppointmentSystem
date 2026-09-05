@@ -1,5 +1,7 @@
 namespace ClinicalAppointmentSystem.Application.Authentication;
 
+public sealed record AuthConfigDto(string GoogleClientId);
+
 public sealed record SignedInUserDto(
     string Subject,
     string Email,
