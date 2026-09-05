@@ -1,0 +1,22 @@
+<section class="login">
+  <div class="login-card card">
+    <p class="card-kicker">Clinic</p>
+    <h1 class="login-title">Appointment system</h1>
+    <p class="login-lead text-muted">Sign in with your Google account to continue.</p>
+
+    @if (error(); as message) {
+      <p class="login-error" role="alert">{{ message }}</p>
+      <button type="button" class="btn btn-secondary btn-block" (click)="retry()">Try again</button>
+    }
+
+    <div class="login-button" [hidden]="error() !== null">
+      <div #googleButton></div>
+
+      @if (preparing()) {
+        <p class="text-muted login-status">Preparing sign-in…</p>
+      } @else if (signingIn()) {
+        <p class="text-muted login-status" role="status">Signing you in…</p>
+      }
+    </div>
+  </div>
+</section>

@@ -1,18 +1,27 @@
-<header class="nav app-header">
-  <div class="nav-brand app-brand">
-    <span>{{ clinicName }}</span>
-  </div>
+@if (isSignedIn()) {
+  <header class="nav app-header">
+    <div class="nav-brand app-brand">
+      <span>{{ clinicName }}</span>
+    </div>
 
-  <nav class="app-nav">
-    @for (item of navItems; track item.path) {
-      <a [routerLink]="item.path" routerLinkActive ariaCurrentWhenActive="page">{{ item.label }}</a>
-    }
-  </nav>
+    <nav class="app-nav">
+      @for (item of navItems; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive ariaCurrentWhenActive="page">{{
+          item.label
+        }}</a>
+      }
+    </nav>
 
-  <div class="app-today">
-    <span>{{ today | date: 'EEE d MMM y' }}</span>
-  </div>
-</header>
+    <div class="app-today">
+      <span>{{ today | date: 'EEE d MMM y' }}</span>
+
+      @if (user(); as signedIn) {
+        <span class="app-user" [title]="signedIn.email">{{ signedIn.displayName }}</span>
+        <button type="button" class="btn btn-ghost" (click)="signOut()">Sign out</button>
+      }
+    </div>
+  </header>
+}
 
 <main class="app-main">
   <router-outlet />

@@ -69,6 +69,10 @@ export class ApiError extends Error {
     return this.status === 0;
   }
 
+  get isUnauthorized(): boolean {
+    return this.status === 401;
+  }
+
   get isNotFound(): boolean {
     return this.status === 404;
   }

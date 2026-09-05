@@ -7,7 +7,8 @@ export type ApiErrorCode =
   | 'DOCTOR_SLOT_CONFLICT'
   | 'PATIENT_SLOT_CONFLICT'
   | 'INVALID_STATUS_TRANSITION'
-  | 'SLOT_OUT_OF_BOUNDS';
+  | 'SLOT_OUT_OF_BOUNDS'
+  | 'INVALID_GOOGLE_TOKEN';
 
 
 export interface ApiProblem {

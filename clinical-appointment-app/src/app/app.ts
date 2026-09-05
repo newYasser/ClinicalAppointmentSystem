@@ -1,6 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+import { GoogleIdentity } from './core/auth/google-identity';
+import { Session } from './core/auth/session';
 
 import { ConfirmDialog } from './shared/ui/confirm-dialog';
 import { ToastHost } from './shared/ui/toast-host';
@@ -17,6 +20,13 @@ interface NavItem {
   styleUrl: './app.scss',
 })
 export class App {
+  private readonly session = inject(Session);
+  private readonly google = inject(GoogleIdentity);
+  private readonly router = inject(Router);
+
+  protected readonly user = this.session.user;
+  protected readonly isSignedIn = this.session.isSignedIn;
+
   protected readonly clinicName = 'Clinic';
 
   protected readonly navItems: readonly NavItem[] = [
@@ -27,4 +37,13 @@ export class App {
   ];
 
   protected readonly today = new Date();
+
+  protected signOut(): void {
+    this.session.signOut();
+
+    // Without this, One Tap signs the same account straight back in.
+    this.google.disableAutoSelect();
+
+    void this.router.navigate(['/login']);
+  }
 }
