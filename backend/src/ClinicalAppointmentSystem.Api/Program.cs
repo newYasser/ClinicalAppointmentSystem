@@ -4,6 +4,7 @@ using ClinicalAppointmentSystem.Api.ErrorHandling;
 using ClinicalAppointmentSystem.Application;
 using ClinicalAppointmentSystem.Domain.Common;
 using ClinicalAppointmentSystem.Infrastructure;
+using ClinicalAppointmentSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 
 const string CorsPolicy = "AngularClient";
@@ -60,6 +61,13 @@ builder.Services.AddInfrastructure(
     googleSettings);
 
 var app = builder.Build();
+
+// The compose stack has no other way to create the schema; a developer machine
+// still uses "dotnet ef database update" and leaves this off.
+if (app.Configuration.GetValue("Database:MigrateOnStartup", false))
+{
+    await app.Services.MigrateClinicDatabaseAsync();
+}
 
 app.UseExceptionHandler();
 
