@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicalAppointmentSystem.Api.Controllers;
 
-public sealed class AppointmentsController(IAppointmentService appointments) : ApiControllerBase
+public sealed class AppointmentsController(
+    IAppointmentService appointments,
+    IScheduleQueryService schedule) : ApiControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<AppointmentListItemDto>), StatusCodes.Status200OK)]
@@ -16,7 +18,7 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
 
     [HttpGet("slots")]
     [ProducesResponseType(typeof(ClinicSlotsDto), StatusCodes.Status200OK)]
-    public ActionResult<ClinicSlotsDto> GetSlots() => Ok(appointments.GetSlots());
+    public ActionResult<ClinicSlotsDto> GetSlots() => Ok(schedule.GetSlots());
 
     [HttpGet("day-board")]
     [ProducesResponseType(typeof(DayBoardDto), StatusCodes.Status200OK)]
@@ -24,7 +26,7 @@ public sealed class AppointmentsController(IAppointmentService appointments) : A
     public async Task<ActionResult<DayBoardDto>> GetDayBoard(
         [FromQuery] DayBoardQuery query,
         CancellationToken cancellationToken) =>
-        Ok(await appointments.GetDayBoardAsync(query, cancellationToken));
+        Ok(await schedule.GetDayBoardAsync(query, cancellationToken));
 
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(AppointmentDetailDto), StatusCodes.Status200OK)]

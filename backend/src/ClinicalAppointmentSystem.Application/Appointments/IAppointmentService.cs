@@ -1,5 +1,4 @@
 using ClinicalAppointmentSystem.Application.Common.Pagination;
-using ClinicalAppointmentSystem.Application.Doctors;
 
 namespace ClinicalAppointmentSystem.Application.Appointments;
 
@@ -25,15 +24,4 @@ public interface IAppointmentService
     Task<AppointmentDetailDto> CancelAsync(int id, CancellationToken cancellationToken = default);
 
     Task<AppointmentDetailDto> CompleteAsync(int id, CancellationToken cancellationToken = default);
-
-    Task<DayBoardDto> GetDayBoardAsync(
-        DayBoardQuery query,
-        CancellationToken cancellationToken = default);
-
-    Task<DoctorAvailabilityDto> GetDoctorAvailabilityAsync(
-        int doctorId,
-        DoctorAvailabilityQuery query,
-        CancellationToken cancellationToken = default);
-
-    ClinicSlotsDto GetSlots();
 }

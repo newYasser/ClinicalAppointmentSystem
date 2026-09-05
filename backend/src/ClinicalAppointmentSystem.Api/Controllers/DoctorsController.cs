@@ -7,7 +7,7 @@ namespace ClinicalAppointmentSystem.Api.Controllers;
 
 public sealed class DoctorsController(
     IDoctorService doctors,
-    IAppointmentService appointments) : ApiControllerBase
+    IScheduleQueryService schedule) : ApiControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<DoctorListItemDto>), StatusCodes.Status200OK)]
@@ -40,5 +40,5 @@ public sealed class DoctorsController(
         int id,
         [FromQuery] DoctorAvailabilityQuery query,
         CancellationToken cancellationToken) =>
-        Ok(await appointments.GetDoctorAvailabilityAsync(id, query, cancellationToken));
+        Ok(await schedule.GetDoctorAvailabilityAsync(id, query, cancellationToken));
 }
