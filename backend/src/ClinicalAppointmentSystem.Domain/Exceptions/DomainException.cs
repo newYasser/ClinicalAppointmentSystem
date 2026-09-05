@@ -21,6 +21,9 @@ public sealed class NotFoundException(string errorCode, string message)
 public sealed class ConflictException(string errorCode, string message)
     : DomainException(errorCode, message);
 
+public sealed class UnauthorizedException(string errorCode, string message)
+    : DomainException(errorCode, message);
+
 public sealed class DomainValidationException(string errorCode, string message)
     : DomainException(errorCode, message)
 {

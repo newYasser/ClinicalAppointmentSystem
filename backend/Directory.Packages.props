@@ -31,6 +31,7 @@
   <ItemGroup Label="Authentication">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(AspNetVersion)" />
     <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.22.0" />
+    <PackageVersion Include="Google.Apis.Auth" Version="1.76.0" />
   </ItemGroup>
 
   <ItemGroup Label="Validation">

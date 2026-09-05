@@ -13,4 +13,6 @@ public static class ErrorCodes
     public const string PatientSlotConflict = "PATIENT_SLOT_CONFLICT";
     public const string InvalidStatusTransition = "INVALID_STATUS_TRANSITION";
     public const string SlotOutOfBounds = "SLOT_OUT_OF_BOUNDS";
+
+    public const string InvalidGoogleToken = "INVALID_GOOGLE_TOKEN";
 }

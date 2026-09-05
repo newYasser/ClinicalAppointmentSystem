@@ -22,6 +22,7 @@ internal sealed class DomainExceptionHandler(
         {
             NotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
             ConflictException => (StatusCodes.Status409Conflict, "Request conflicts with the current state"),
+            UnauthorizedException => (StatusCodes.Status401Unauthorized, "Authentication failed"),
             DomainValidationException => (StatusCodes.Status400BadRequest, "One or more validation errors occurred."),
             _ => (StatusCodes.Status400BadRequest, "Request could not be processed"),
         };

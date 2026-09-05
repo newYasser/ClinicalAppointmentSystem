@@ -44,6 +44,7 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod()));
 
 var jwtSettings = builder.Configuration.ReadJwtSettings();
+var googleSettings = builder.Configuration.ReadGoogleSettings();
 
 builder.Services.AddJwtAuthentication(jwtSettings);
 
@@ -55,7 +56,8 @@ builder.Services.AddInfrastructure(
         "Connection string 'ClinicDb' is not configured. Set it in user-secrets or appsettings."),
     builder.Configuration["Clinic:TimeZone"]
     ?? throw new InvalidOperationException("'Clinic:TimeZone' is not configured."),
-    jwtSettings);
+    jwtSettings,
+    googleSettings);
 
 var app = builder.Build();
 

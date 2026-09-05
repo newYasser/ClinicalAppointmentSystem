@@ -17,7 +17,8 @@ public static class DependencyInjection
         this IServiceCollection services,
         string connectionString,
         string timeZoneId,
-        JwtSettings jwtSettings)
+        JwtSettings jwtSettings,
+        GoogleAuthSettings googleSettings)
     {
         services.AddDbContext<ClinicDbContext>(options =>
             options.UseMySql(connectionString, MySqlVersion));
@@ -28,6 +29,8 @@ public static class DependencyInjection
 
         services.AddSingleton<IAccessTokenIssuer>(sp =>
             new JwtAccessTokenIssuer(jwtSettings, sp.GetRequiredService<IClinicClock>()));
+
+        services.AddSingleton<IGoogleTokenValidator>(new GoogleTokenValidator(googleSettings));
 
         return services;
     }
