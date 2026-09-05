@@ -1,8 +1,10 @@
 using ClinicalAppointmentSystem.Application.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicalAppointmentSystem.Api.Controllers;
 
+[AllowAnonymous]
 public sealed class AuthController(IAuthService auth) : ApiControllerBase
 {
     [HttpPost("google")]
