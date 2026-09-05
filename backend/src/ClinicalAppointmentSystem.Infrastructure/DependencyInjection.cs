@@ -1,4 +1,6 @@
+using ClinicalAppointmentSystem.Application.Authentication;
 using ClinicalAppointmentSystem.Application.Common.Abstractions;
+using ClinicalAppointmentSystem.Infrastructure.Authentication;
 using ClinicalAppointmentSystem.Infrastructure.Persistence;
 using ClinicalAppointmentSystem.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +16,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         string connectionString,
-        string timeZoneId)
+        string timeZoneId,
+        JwtSettings jwtSettings)
     {
         services.AddDbContext<ClinicDbContext>(options =>
             options.UseMySql(connectionString, MySqlVersion));
@@ -22,6 +25,9 @@ public static class DependencyInjection
         services.AddScoped<IClinicDbContext>(sp => sp.GetRequiredService<ClinicDbContext>());
 
         services.AddSingleton<IClinicClock>(new ClinicClock(TimeProvider.System, timeZoneId));
+
+        services.AddSingleton<IAccessTokenIssuer>(sp =>
+            new JwtAccessTokenIssuer(jwtSettings, sp.GetRequiredService<IClinicClock>()));
 
         return services;
     }

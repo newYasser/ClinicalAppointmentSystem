@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ClinicalAppointmentSystem.Api.Authentication;
 using ClinicalAppointmentSystem.Api.ErrorHandling;
 using ClinicalAppointmentSystem.Application;
 using ClinicalAppointmentSystem.Domain.Common;
@@ -42,6 +43,10 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod()));
 
+var jwtSettings = builder.Configuration.ReadJwtSettings();
+
+builder.Services.AddJwtAuthentication(jwtSettings);
+
 builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(
@@ -49,7 +54,8 @@ builder.Services.AddInfrastructure(
     ?? throw new InvalidOperationException(
         "Connection string 'ClinicDb' is not configured. Set it in user-secrets or appsettings."),
     builder.Configuration["Clinic:TimeZone"]
-    ?? throw new InvalidOperationException("'Clinic:TimeZone' is not configured."));
+    ?? throw new InvalidOperationException("'Clinic:TimeZone' is not configured."),
+    jwtSettings);
 
 var app = builder.Build();
 
@@ -67,6 +73,8 @@ else
 }
 
 app.UseCors(CorsPolicy);
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
