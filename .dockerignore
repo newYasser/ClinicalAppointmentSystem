@@ -1,0 +1,30 @@
+# Build context is the repository root (see docker/docker-compose.yml), so everything
+# both images ignore is listed here.
+
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+**/TestResults/
+
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+.claude/
+
+docs/
+matrial/
+
+# Never bake local secrets into an image layer.
+**/.env
+**/.env.local
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/*.pfx
+
+**/*.md
+**/.DS_Store
+**/Thumbs.db

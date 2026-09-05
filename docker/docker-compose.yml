@@ -20,6 +20,53 @@ services:
       retries: 12
       start_period: 30s
 
+  api:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    container_name: ${API_CONTAINER_NAME:-clinic-api}
+    restart: unless-stopped
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      # Development keeps HTTPS redirection off, which matters because nginx reaches
+      # this container over plain HTTP on the compose network. Switching to Production
+      # means adding forwarded-headers handling first.
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      TZ: ${TZ:-Africa/Cairo}
+
+      ConnectionStrings__ClinicDb: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE};User Id=${MYSQL_USER};Password=${MYSQL_PASSWORD};"
+
+      # No schema ships in the image, so the container applies migrations itself.
+      # Off by default in code; only this compose file turns it on.
+      Database__MigrateOnStartup: "true"
+
+      # Secrets. Values come from docker/.env, which is gitignored — never from
+      # appsettings.json, and never baked into an image layer.
+      Authentication__Jwt__SigningKey: ${JWT_SIGNING_KEY:?set JWT_SIGNING_KEY in docker/.env}
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in docker/.env}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+
+    ports:
+      - "${API_HOST_PORT:-7001}:8080"
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    container_name: ${WEB_CONTAINER_NAME:-clinic-web}
+    restart: unless-stopped
+
+    depends_on:
+      - api
+
+    ports:
+      - "${WEB_HOST_PORT:-8080}:80"
+
 volumes:
   clinic-mysql-data:
     name: ${MYSQL_VOLUME_NAME:-clinic-mysql-data}
